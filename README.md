@@ -110,6 +110,10 @@ docker compose up --build
 
 Abre <http://localhost:3000>.
 
+Para publicarlo en un servidor, con HTTPS y contraseña de acceso, sigue
+[DESPLIEGUE.md](DESPLIEGUE.md). **No sirve un hosting compartido**: la
+conversión a PDF necesita instalar LibreOffice, y eso pide acceso de root.
+
 ### Sin Docker
 
 Requiere Node 20+ y **LibreOffice Writer** instalado:

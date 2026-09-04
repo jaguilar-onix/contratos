@@ -1,0 +1,18 @@
+# Publica la aplicacion con HTTPS y una contrasena de acceso.
+# Las variables se definen en el archivo .env (ver .env.ejemplo).
+{$DOMINIO} {
+	encode zstd gzip
+
+	# La app no trae login propio: sin esto, cualquiera que sepa la direccion
+	# podria generar contratos y leer los datos de los compradores.
+	basic_auth {
+		{$USUARIO} {$CLAVE_HASH}
+	}
+
+	# Un anexo escaneado pesa mas que el limite por omision de Caddy.
+	request_body {
+		max_size 30MB
+	}
+
+	reverse_proxy contratos:3000
+}
