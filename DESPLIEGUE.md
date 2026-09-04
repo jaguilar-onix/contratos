@@ -138,22 +138,38 @@ control → Red → Interfaz de red*.
   *DNS rebinding*). Si el nombre no resuelve desde una computadora de la
   oficina, es por eso: usa el siguiente camino.
 
+  Para saber si este paso quedó: si el navegador muestra **cualquier** página
+  del NAS —aunque sea la de «Your website is not set up yet»— el nombre ya
+  resuelve bien y lo que falta es el paso 3.
+
 - **DNS local en el router.** Casi todos permiten agregar un nombre que apunte a
   una IP de la red. Busca *DNS local*, *Host estático* o *DNS masquerading*.
 
-**3. Crea el proxy inverso en DSM.** *Panel de control → Portal de inicio de
-sesión → Avanzado → Proxy inverso → Crear*:
+**3. Dile al NAS a quién corresponde ese nombre.** Hay dos mecanismos y no dan
+igual; cuál usar depende de si tienes **Web Station** instalado:
 
-| | Origen | Destino |
-| --- | --- | --- |
-| Protocolo | HTTP | HTTP |
-| Nombre de host | `contratos.onixliving.mx` | `localhost` |
-| Puerto | `80` | `3000` |
+- **Con Web Station instalado** (lo más común, y el que manda en el puerto 80):
+  usa su asistente, en *Web Station → Portal web → Crear → Portal de servicios
+  web*, o el que ofrece Container Manager al abrir el proyecto:
+
+  | Campo | Valor |
+  | --- | --- |
+  | Servicio | `contratos (project)` |
+  | Tipo de portal | Basada en el nombre |
+  | Nombre de host | `contratos.onixliving.mx` |
+  | Puerto | 80 / 443 |
+
+  El *Nombre de host* es el campo clave: si se deja vacío, Web Station responde
+  con su página por omisión —«Your website is not set up yet»— en lugar de
+  llevar a la aplicación.
+
+- **Sin Web Station:** *Panel de control → Portal de inicio de sesión →
+  Avanzado → Proxy inverso → Crear*, con origen HTTP / `contratos.onixliving.mx`
+  / puerto `80` y destino HTTP / `localhost` / puerto `3000`.
+
+No configures los dos para el mismo nombre: se pelean y gana Web Station.
 
 Guarda y entra a `http://contratos.onixliving.mx` desde la oficina.
-
-> Container Manager también ofrece un *Asistente de creación de portales* al
-> abrir el proyecto, que hace lo mismo con el servicio ya seleccionado.
 
 **Sobre el candado de HTTPS.** El certificado gratuito de Let's Encrypt que trae
 DSM exige que el dominio sea alcanzable desde internet por el puerto 80, así que
