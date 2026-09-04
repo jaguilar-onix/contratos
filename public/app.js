@@ -76,7 +76,7 @@ selectPlantilla.addEventListener('change', usarPlantillaSeleccionada);
 
 $('#btn-subir').addEventListener('click', async () => {
   const archivo = $('#archivo-machote').files[0];
-  if (!archivo) return mostrar('Elige un archivo .docx.', 'error');
+  if (!archivo) return mostrar('Elige un archivo .docx o .dotx.', 'error');
   const cuerpo = new FormData();
   cuerpo.append('machote', archivo);
   try {
@@ -157,6 +157,7 @@ $('#btn-generar').addEventListener('click', async () => {
   cuerpo.append('plantillaId', plantillaActual.id);
   cuerpo.append('datos', JSON.stringify(datos));
   cuerpo.append('folio', $('#folio').value);
+  cuerpo.append('folioEn', $('#folio-en').value);
   cuerpo.append('separadores', $('#separadores').checked);
   cuerpo.append('titulosAnexos', JSON.stringify(anexos.map((a) => a.name)));
   for (const archivo of anexos) cuerpo.append('anexos', archivo);

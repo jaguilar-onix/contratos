@@ -20,14 +20,14 @@
         <button type="button" id="btn-borrar" class="secundario" hidden>Eliminar</button>
       </div>
       <details id="subir-machote">
-        <summary>Subir un machote nuevo (.docx)</summary>
+        <summary>Subir un machote nuevo (.docx o .dotx)</summary>
         <p class="ayuda">
           En tu documento de Word, escribe cada dato variable entre dobles llaves:
           <code>{{nombre_arrendatario}}</code>, <code>{{monto_renta}}</code>,
           <code>{{fecha_firma}}</code>. La aplicación los detecta y arma el formulario.
         </p>
         <div class="fila">
-          <input type="file" id="archivo-machote" accept=".docx" />
+          <input type="file" id="archivo-machote" accept=".docx,.dotx" />
           <button type="button" id="btn-subir">Subir</button>
         </div>
       </details>
@@ -55,6 +55,14 @@
         <label class="campo">
           <span>Folio</span>
           <input type="text" id="folio" placeholder="Se genera automáticamente" />
+        </label>
+        <label class="campo">
+          <span>Estampar el folio al pie</span>
+          <select id="folio-en">
+            <option value="anexos">Solo en los anexos</option>
+            <option value="todo">En todo el expediente</option>
+            <option value="ninguno">En ninguna página</option>
+          </select>
         </label>
       </div>
       <button type="button" id="btn-generar" class="principal">Generar PDF</button>

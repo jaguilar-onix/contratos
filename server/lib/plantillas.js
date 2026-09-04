@@ -7,6 +7,27 @@ import Docxtemplater from 'docxtemplater';
 const DIR = path.resolve('data/plantillas');
 const DELIMITERS = { start: '{{', end: '}}' };
 
+const TIPO_PLANTILLA =
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml';
+const TIPO_DOCUMENTO =
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml';
+
+/**
+ * Un machote suele venir como .dotx (plantilla de Word). Por dentro es igual a
+ * un .docx salvo el content type, y LibreOffice se niega a convertirlo si la
+ * extension y el tipo no concuerdan. Normalizarlo aqui deja un solo formato
+ * circulando por el resto de la aplicacion.
+ */
+export function normalizar(buffer) {
+  const zip = new PizZip(buffer);
+  const tipos = zip.file('[Content_Types].xml');
+  if (!tipos) throw new Error('El archivo no es un documento de Word valido.');
+  const xml = tipos.asText();
+  if (!xml.includes(TIPO_PLANTILLA)) return buffer;
+  zip.file('[Content_Types].xml', xml.replaceAll(TIPO_PLANTILLA, TIPO_DOCUMENTO));
+  return zip.generate({ type: 'nodebuffer', compression: 'DEFLATE' });
+}
+
 /**
  * Word parte el texto de un parrafo en varios <w:t> (por revisiones, correccion
  * ortografica, cambios de formato). Para descubrir las variables hay que unir
@@ -56,14 +77,15 @@ export function rellenar(buffer, datos) {
   return doc.toBuffer();
 }
 
-export async function guardar(nombreArchivo, buffer) {
+export async function guardar(nombreArchivo, entrada) {
   await fs.mkdir(DIR, { recursive: true });
+  const buffer = normalizar(entrada);
   const id = crypto.randomUUID();
   const campos = detectarCampos(buffer);
   await fs.writeFile(path.join(DIR, `${id}.docx`), buffer);
   const meta = {
     id,
-    nombre: nombreArchivo.replace(/\.docx$/i, ''),
+    nombre: nombreArchivo.replace(/\.dotx?$|\.docx$/i, ''),
     campos,
     creado: new Date().toISOString(),
   };

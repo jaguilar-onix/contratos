@@ -116,8 +116,13 @@ async function caratula(titulo, subtitulo) {
   return pdf.save();
 }
 
-/** Une contrato y anexos en un solo PDF, con folio al pie de cada pagina. */
-export async function armarExpediente({ contrato, anexos = [], folio }) {
+/**
+ * Une contrato y anexos en un solo PDF.
+ * `folioEn` decide donde se estampa el folio al pie: 'anexos' (por omision),
+ * 'todo' o 'ninguno'. Muchos machotes ya traen su propio pie de pagina, y
+ * estampar encima de el deja las dos numeraciones superpuestas.
+ */
+export async function armarExpediente({ contrato, anexos = [], folio, folioEn = 'anexos' }) {
   const final = await PDFDocument.create();
   final.setTitle(folio || 'Contrato');
   final.setProducer('Generador de contratos');
@@ -129,6 +134,7 @@ export async function armarExpediente({ contrato, anexos = [], folio }) {
   };
 
   await copiar(contrato);
+  const paginasDelContrato = final.getPageCount();
 
   for (const [i, anexo] of anexos.entries()) {
     const etiqueta = `Anexo ${String.fromCharCode(65 + i)}`;
@@ -138,14 +144,18 @@ export async function armarExpediente({ contrato, anexos = [], folio }) {
     await copiar(await adjuntoAPdf(anexo));
   }
 
-  if (folio) await pieDePagina(final, folio);
+  if (folio && folioEn !== 'ninguno') {
+    await pieDePagina(final, folio, folioEn === 'todo' ? 0 : paginasDelContrato);
+  }
   return Buffer.from(await final.save());
 }
 
-async function pieDePagina(pdf, folio) {
+/** Estampa el folio a partir de `desde`, respetando el pie propio del machote. */
+async function pieDePagina(pdf, folio, desde) {
   const fuente = await pdf.embedFont(StandardFonts.Helvetica);
   const paginas = pdf.getPages();
   paginas.forEach((pagina, i) => {
+    if (i < desde) return;
     const { width } = pagina.getSize();
     const texto = `${folio}  ·  Pagina ${i + 1} de ${paginas.length}`;
     const rotada = pagina.getRotation().angle % 180 !== 0;

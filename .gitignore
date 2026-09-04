@@ -3,3 +3,9 @@ data/
 *.log
 .env
 .DS_Store
+
+# Los machotes llevan datos de la empresa (cuentas bancarias, escrituras):
+# se cargan por la interfaz, nunca por git.
+machotes/
+*.docx
+*.dotx

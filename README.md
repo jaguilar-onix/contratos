@@ -5,7 +5,7 @@ con el contrato y todos sus anexos (identificaciones, comprobantes, planos).
 
 ## Cómo funciona
 
-1. **Subes tu machote `.docx`** una sola vez. La app detecta las variables y arma
+1. **Subes tu machote `.docx` o `.dotx`** una sola vez. La app detecta las variables y arma
    el formulario automáticamente.
 2. **Capturas los datos** de ese contrato en particular.
 3. **Adjuntas imágenes (JPG/PNG) y PDFs**, en el orden que quieras.
@@ -80,7 +80,7 @@ entre reinicios (en Docker ya está montado como volumen).
 | Método   | Ruta                   | Descripción                                          |
 | -------- | ---------------------- | ---------------------------------------------------- |
 | `GET`    | `/api/plantillas`      | Lista los machotes con sus campos detectados.        |
-| `POST`   | `/api/plantillas`      | Sube un machote (`multipart`, campo `machote`).      |
+| `POST`   | `/api/plantillas`      | Sube un machote `.docx` o `.dotx` (campo `machote`). |
 | `DELETE` | `/api/plantillas/:id`  | Elimina un machote.                                  |
 | `POST`   | `/api/generar`         | Genera el PDF final y lo devuelve como descarga.     |
 
@@ -94,6 +94,7 @@ entre reinicios (en Docker ya está montado como volumen).
 | `titulosAnexos`  | JSON con el título de cada anexo, en el mismo orden.     |
 | `folio`          | Folio propio; si se omite se genera `CTO-AAAAMMDD-XXXX`. |
 | `separadores`    | `false` para omitir la carátula de cada anexo.           |
+| `folioEn`        | Dónde estampar el folio: `anexos` (omisión), `todo`, `ninguno`. |
 | `permitirVacios` | `true` para generar aunque falten campos por capturar.   |
 
 ## Estructura
@@ -105,11 +106,20 @@ server/lib/pdf.js         convierte a PDF, arma anexos y une todo
 public/                 interfaz web
 ```
 
+## El folio al pie
+
+Muchos machotes ya traen su propio pie de página con numeración de Word. Por eso
+el folio se estampa **solo en los anexos** por omisión: así no se encima con el
+pie del contrato. Puedes cambiarlo a todo el expediente o desactivarlo.
+
 ## Notas de operación
 
 - **Datos personales.** Los contratos y sus anexos llevan información sensible
   (INE, domicilios). El PDF generado no se guarda en el servidor: se transmite y
   se descarga. Publica la app detrás de HTTPS y con control de acceso.
+- **No subas machotes al repositorio.** Un contrato modelo suele traer datos de
+  la empresa (cuentas bancarias, escrituras). `.gitignore` ya excluye `machotes/`
+  y `data/`; súbelos por la interfaz, no por git.
 - **Sin autenticación.** No trae login; cualquiera que alcance el puerto puede
   generar contratos. Ponla detrás de tu VPN o de un proxy con autenticación
   antes de exponerla a internet.
