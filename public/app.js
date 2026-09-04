@@ -280,3 +280,107 @@ $('#btn-generar').addEventListener('click', async () => {
 });
 
 cargarPlantillas().catch(() => mostrar('No se pudo conectar con el servidor.', 'error'));
+
+// --- Sesión y usuarios ----------------------------------------------------
+
+const dialogo = $('#dialogo-usuarios');
+const estadoUsuarios = $('#estado-usuarios');
+
+const avisar = (mensaje, tipo = '') => {
+  estadoUsuarios.textContent = mensaje;
+  estadoUsuarios.className = `estado ${tipo}`;
+};
+
+pedirJson('/api/yo')
+  .then(({ usuario }) => ($('#quien').textContent = usuario))
+  .catch(() => {});
+
+$('#btn-salir').addEventListener('click', async () => {
+  await fetch('/api/salir', { method: 'POST' });
+  location.href = '/entrar';
+});
+
+$('#btn-usuarios').addEventListener('click', async () => {
+  avisar('');
+  await pintarUsuarios();
+  dialogo.showModal();
+});
+
+$('#btn-cerrar-usuarios').addEventListener('click', () => dialogo.close());
+
+async function pintarUsuarios() {
+  // Se pide primero y se reemplaza al final: vaciar antes de esperar la
+  // respuesta deja la lista en blanco a la vista.
+  const usuarios = await pedirJson('/api/usuarios');
+  const lista = document.createElement('ul');
+  lista.className = 'usuarios';
+  lista.id = 'lista-usuarios';
+  const yo = $('#quien').textContent;
+  for (const { nombre } of usuarios) {
+    const li = document.createElement('li');
+    const etiqueta = document.createElement('span');
+    etiqueta.textContent = nombre === yo ? `${nombre} (tú)` : nombre;
+    li.append(etiqueta);
+
+    if (nombre !== yo) {
+      const quitar = document.createElement('button');
+      quitar.type = 'button';
+      quitar.textContent = 'Eliminar';
+      quitar.addEventListener('click', async () => {
+        avisar('');
+        if (!confirm(`¿Eliminar al usuario "${nombre}"?`)) return;
+        const res = await fetch(`/api/usuarios/${encodeURIComponent(nombre)}`, {
+          method: 'DELETE',
+        });
+        if (!res.ok) {
+          const { error } = await res.json().catch(() => ({}));
+          return avisar(error || 'No se pudo eliminar.', 'error');
+        }
+        avisar(`Usuario "${nombre}" eliminado.`, 'exito');
+        pintarUsuarios();
+      });
+      li.append(quitar);
+    }
+    lista.append(li);
+  }
+  $('#lista-usuarios').replaceWith(lista);
+}
+
+$('#btn-crear').addEventListener('click', async () => {
+  avisar('');
+  try {
+    await pedirJson('/api/usuarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        usuario: $('#nuevo-usuario').value.trim(),
+        clave: $('#nueva-clave').value,
+      }),
+    });
+    $('#nuevo-usuario').value = '';
+    $('#nueva-clave').value = '';
+    avisar('Usuario agregado.', 'exito');
+    pintarUsuarios();
+  } catch (e) {
+    avisar(e.message, 'error');
+  }
+});
+
+$('#btn-cambiar').addEventListener('click', async () => {
+  avisar('');
+  try {
+    await pedirJson('/api/usuarios/clave', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        actual: $('#clave-actual').value,
+        nueva: $('#clave-nueva').value,
+      }),
+    });
+    $('#clave-actual').value = '';
+    $('#clave-nueva').value = '';
+    avisar('Contraseña cambiada.', 'exito');
+  } catch (e) {
+    avisar(e.message, 'error');
+  }
+});

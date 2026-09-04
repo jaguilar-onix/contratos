@@ -9,9 +9,9 @@ corre esto. Hay tres caminos probados, de menos a más administración:
 | [Render](#en-render) | ~7 USD/mes | Publicarlo sin administrar un servidor |
 | [Un VPS](#en-un-vps) | ~6.5 USD/mes | Control total, a cambio de mantenerlo |
 
-En todos, la contraseña de acceso se configura igual: las variables
-`ACCESO_USUARIO` y `ACCESO_CLAVE`. **Sin ellas la aplicación queda abierta**, lo
-cual está bien en la red de la oficina y no lo está en internet.
+En todos, la aplicación pide usuario y contraseña. El primer usuario se crea con
+las variables `ACCESO_USUARIO` y `ACCESO_CLAVE`; a partir de ahí se administran
+desde la propia aplicación, con el botón **Usuarios**.
 
 ## Dónde NO funciona
 
@@ -107,8 +107,7 @@ services:
 
 En esa carpeta `data` quedan los machotes. Es la que hay que respaldar.
 
-Si vas a publicarlo fuera de la red local, agrega ahí mismo el usuario y la
-contraseña:
+Agrega ahí mismo el primer usuario, o nadie podrá entrar:
 
 ```yaml
     environment:
@@ -116,6 +115,8 @@ contraseña:
       ACCESO_USUARIO: onix
       ACCESO_CLAVE: una-contraseña-larga
 ```
+
+Los demás usuarios se dan de alta desde la aplicación.
 
 ### Ponerle un nombre en la red de la oficina
 
@@ -188,10 +189,8 @@ Si más adelante quieres entrar sin estar en la oficina, hay dos formas:
   del router hacia el NAS, y el certificado de Let's Encrypt desde
   *Seguridad → Certificado*.
 
-> Antes de publicarlo a internet, ponle contraseña: agrega `ACCESO_USUARIO` y
-> `ACCESO_CLAVE` al proyecto en Container Manager y reconstrúyelo. Sin eso,
-> cualquiera que dé con la dirección genera contratos y lee los datos de los
-> compradores.
+> Antes de publicarlo a internet, revisa que las contraseñas sean largas y
+> elimina los usuarios que ya no ocupes.
 
 ### Rendimiento y respaldo
 

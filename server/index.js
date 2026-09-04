@@ -1,8 +1,11 @@
 import path from 'node:path';
 import express from 'express';
 import multer from 'multer';
-import { acceso } from './lib/acceso.js';
+import cookieParser from 'cookie-parser';
+import { entrar, exigirSesion, salir } from './lib/acceso.js';
 import * as plantillas from './lib/plantillas.js';
+import * as sesion from './lib/sesion.js';
+import * as usuarios from './lib/usuarios.js';
 import { docxAPdf, armarExpediente, folioNuevo } from './lib/pdf.js';
 
 const app = express();
@@ -17,21 +20,64 @@ const subida = multer({
 const EXT_MACHOTE = /\.(docx|dotx)$/i;
 
 // Render y otras plataformas consultan esta ruta para saber si el servicio
-// esta vivo; queda fuera de la contrasena o siempre responderia 401.
+// esta vivo; queda fuera del login o siempre responderia 401.
 app.get('/salud', (_req, res) => res.json({ ok: true }));
 
-app.use(
-  acceso({
-    usuario: process.env.ACCESO_USUARIO,
-    clave: process.env.ACCESO_CLAVE,
-    publicas: ['/salud'],
-  })
-);
+const asincrono = (fn) => (req, res, next) => fn(req, res, next).catch(next);
 
 app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+// Detras del proxy de DSM o de Caddy, esto es lo que permite saber si la
+// visita llego por HTTPS y si la IP del intento es la real.
+app.set('trust proxy', true);
+
+// La pantalla de entrada y lo que necesita para pintarse.
+const PUBLICAS = ['/salud', '/entrar', '/entrar.html', '/api/entrar', '/styles.css'];
+
+app.get('/entrar', (req, res) => {
+  if (sesion.usuarioDe(req)) return res.redirect('/');
+  res.sendFile(path.resolve('public/entrar.html'));
+});
+app.post('/api/entrar', asincrono(entrar));
+
+app.use(exigirSesion({ publicas: PUBLICAS }));
+
 app.use(express.static(path.resolve('public')));
 
-const asincrono = (fn) => (req, res, next) => fn(req, res, next).catch(next);
+// --- Sesion y usuarios ----------------------------------------------------
+
+app.get('/api/yo', (req, res) => res.json({ usuario: req.usuario }));
+app.post('/api/salir', salir);
+
+app.get('/api/usuarios', asincrono(async (_req, res) => {
+  res.json(await usuarios.listar());
+}));
+
+app.post('/api/usuarios', asincrono(async (req, res) => {
+  const { usuario, clave } = req.body || {};
+  await usuarios.crear(String(usuario || '').trim(), clave);
+  res.status(201).json({ usuario });
+}));
+
+app.post('/api/usuarios/clave', asincrono(async (req, res) => {
+  const { actual, nueva } = req.body || {};
+  if (!(await usuarios.verificar(req.usuario, actual))) {
+    return res.status(401).json({ error: 'La contraseña actual no es correcta.' });
+  }
+  await usuarios.cambiarClave(req.usuario, nueva);
+  res.json({ ok: true });
+}));
+
+app.delete('/api/usuarios/:nombre', asincrono(async (req, res) => {
+  if (req.params.nombre === req.usuario) {
+    return res.status(400).json({ error: 'No puedes eliminar tu propio usuario.' });
+  }
+  await usuarios.eliminar(req.params.nombre);
+  res.status(204).end();
+}));
+
 
 // --- Plantillas -----------------------------------------------------------
 
@@ -134,6 +180,10 @@ app.post(
 // --- Errores --------------------------------------------------------------
 
 app.use((err, _req, res, _next) => {
+  // Los mensajes de usuarios.js son para leerse: explican que corregir.
+  if (err instanceof Error && /^(El usuario|La contraseña|Es el único)/.test(err.message)) {
+    return res.status(400).json({ error: err.message });
+  }
   if (err instanceof multer.MulterError) {
     const mensaje =
       err.code === 'LIMIT_FILE_SIZE'
@@ -145,12 +195,24 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: err.message || 'Error al generar el contrato.' });
 });
 
+await sesion.iniciar();
+
+const sembrado = await usuarios.sembrar(
+  process.env.ACCESO_USUARIO,
+  process.env.ACCESO_CLAVE
+);
+if (sembrado) console.log(`Usuario inicial creado: ${sembrado}`);
+
 app.listen(PUERTO, () => {
   console.log(`Generador de contratos escuchando en http://localhost:${PUERTO}`);
-  if (!process.env.ACCESO_USUARIO || !process.env.ACCESO_CLAVE) {
-    console.warn(
-      'AVISO: sin contraseña de acceso. Define ACCESO_USUARIO y ACCESO_CLAVE ' +
-        'antes de publicar esto en internet: los contratos llevan datos personales.'
-    );
+  if (!process.env.ACCESO_USUARIO && !sembrado) {
+    usuarios.hay().then((existe) => {
+      if (!existe) {
+        console.warn(
+          'AVISO: no hay ningún usuario dado de alta y nadie podrá entrar. ' +
+            'Define ACCESO_USUARIO y ACCESO_CLAVE para crear el primero.'
+        );
+      }
+    });
   }
 });

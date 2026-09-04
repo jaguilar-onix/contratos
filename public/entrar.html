@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Entrar · Generador de contratos</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f6f4f'/%3E%3Cpath d='M9 8h11l4 4v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z' fill='%23fff'/%3E%3Cpath d='M12 16h8M12 20h5' stroke='%231f6f4f' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="centrado">
+  <form class="tarjeta-entrada" id="formulario">
+    <h1>Generador de contratos</h1>
+    <p class="ayuda">Entra con tu usuario para continuar.</p>
+
+    <label class="campo">
+      <span>Usuario</span>
+      <input type="text" name="usuario" autocomplete="username" autofocus required />
+    </label>
+
+    <label class="campo">
+      <span>Contraseña</span>
+      <input type="password" name="clave" autocomplete="current-password" required />
+    </label>
+
+    <button type="submit" class="principal">Entrar</button>
+    <p id="estado" class="estado" role="alert"></p>
+  </form>
+
+  <script>
+    const formulario = document.getElementById('formulario');
+    const estado = document.getElementById('estado');
+
+    formulario.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const boton = formulario.querySelector('button');
+      boton.disabled = true;
+      estado.textContent = '';
+      estado.className = 'estado';
+
+      try {
+        const datos = Object.fromEntries(new FormData(formulario));
+        const res = await fetch('/api/entrar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(datos),
+        });
+        if (!res.ok) {
+          const { error } = await res.json().catch(() => ({}));
+          throw new Error(error || 'No se pudo entrar.');
+        }
+        const destino = new URLSearchParams(location.search).get('destino');
+        // Solo rutas de este mismo sitio: un destino con http:// llevaria fuera.
+        location.href = destino && destino.startsWith('/') ? destino : '/';
+      } catch (e) {
+        estado.textContent = e.message;
+        estado.className = 'estado error';
+        formulario.clave.value = '';
+        formulario.clave.focus();
+      } finally {
+        boton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

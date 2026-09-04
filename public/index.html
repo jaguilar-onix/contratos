@@ -4,13 +4,59 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Generador de contratos</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f6f4f'/%3E%3Cpath d='M9 8h11l4 4v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z' fill='%23fff'/%3E%3Cpath d='M12 16h8M12 20h5' stroke='%231f6f4f' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="barra">
-    <h1>Generador de contratos</h1>
-    <p>Llena el machote, adjunta los documentos y descarga un solo PDF.</p>
+    <div>
+      <h1>Generador de contratos</h1>
+      <p>Llena el machote, adjunta los documentos y descarga un solo PDF.</p>
+    </div>
+    <div class="sesion">
+      <span id="quien"></span>
+      <button type="button" id="btn-usuarios" class="secundario">Usuarios</button>
+      <button type="button" id="btn-salir" class="secundario">Salir</button>
+    </div>
   </header>
+
+  <dialog id="dialogo-usuarios">
+    <h2>Usuarios</h2>
+    <ul id="lista-usuarios" class="usuarios"></ul>
+
+    <details>
+      <summary>Agregar usuario</summary>
+      <div class="fila">
+        <label class="campo">
+          <span>Usuario</span>
+          <input type="text" id="nuevo-usuario" autocomplete="off" />
+        </label>
+        <label class="campo">
+          <span>Contraseña</span>
+          <input type="password" id="nueva-clave" autocomplete="new-password" />
+        </label>
+        <button type="button" id="btn-crear">Agregar</button>
+      </div>
+    </details>
+
+    <details>
+      <summary>Cambiar mi contraseña</summary>
+      <div class="fila">
+        <label class="campo">
+          <span>Contraseña actual</span>
+          <input type="password" id="clave-actual" autocomplete="current-password" />
+        </label>
+        <label class="campo">
+          <span>Nueva contraseña</span>
+          <input type="password" id="clave-nueva" autocomplete="new-password" />
+        </label>
+        <button type="button" id="btn-cambiar">Cambiar</button>
+      </div>
+    </details>
+
+    <p id="estado-usuarios" class="estado" role="status"></p>
+    <button type="button" id="btn-cerrar-usuarios" class="principal">Cerrar</button>
+  </dialog>
 
   <main>
     <section class="paso">

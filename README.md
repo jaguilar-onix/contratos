@@ -137,13 +137,23 @@ npm start
 | `PORT`            | `3000`      | Puerto del servidor.                                 |
 | `LIMITE_MB`       | `25`        | Tamaño máximo por archivo adjunto.                   |
 | `SOFFICE_BIN`     | `soffice`   | Ruta al ejecutable de LibreOffice.                   |
-| `ACCESO_USUARIO`  | —           | Usuario para entrar. Sin él, la app queda abierta.   |
-| `ACCESO_CLAVE`    | —           | Contraseña. Ambas son necesarias para que pida acceso. |
+| `ACCESO_USUARIO`  | —           | Usuario que se crea la primera vez que arranca.      |
+| `ACCESO_CLAVE`    | —           | Su contraseña. Mínimo 8 caracteres.                  |
+| `SESION_HORAS`    | `12`        | Cuánto dura la sesión antes de pedir entrar de nuevo. |
 
-Define `ACCESO_USUARIO` y `ACCESO_CLAVE` antes de que la aplicación sea
-alcanzable desde internet: los contratos y sus anexos llevan identificaciones y
-domicilios de los compradores. Al arrancar sin ellas, la aplicación lo advierte
-en la consola.
+## Quién puede entrar
+
+La aplicación pide usuario y contraseña. Los usuarios se guardan en
+`data/usuarios.json`, con las contraseñas cifradas (scrypt), y se administran
+desde la propia aplicación: el botón **Usuarios** permite agregar gente, quitarla
+y cambiar la contraseña propia.
+
+`ACCESO_USUARIO` y `ACCESO_CLAVE` sirven para crear el **primer** usuario, ya que
+sin él nadie podría entrar. Solo actúan cuando no existe ninguno, así que la
+contraseña puede cambiarse después desde la aplicación sin que la variable la
+revierta. Si arranca sin usuarios y sin esas variables, lo advierte en la consola.
+
+Ocho intentos fallidos desde la misma dirección obligan a esperar diez minutos.
 
 Los machotes se guardan en `data/plantillas/`. Ese directorio debe persistir
 entre reinicios (en Docker ya está montado como volumen).

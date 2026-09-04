@@ -1,45 +1,74 @@
-import crypto from 'node:crypto';
+import * as sesion from './sesion.js';
+import * as usuarios from './usuarios.js';
 
-/**
- * Contrasena de acceso a la aplicacion. Los contratos y sus anexos llevan
- * identificaciones y domicilios de los compradores, asi que en cuanto la
- * aplicacion sale a internet deja de ser opcional.
- *
- * Se activa cuando estan definidas ACCESO_USUARIO y ACCESO_CLAVE; sin ellas la
- * aplicacion corre abierta, que es lo comodo en una computadora de la oficina.
- */
-export function acceso({ usuario, clave, publicas = [] }) {
-  if (!usuario || !clave) {
-    return (req, _res, next) => next();
+// Freno a la adivinacion de contrasenas: unos pocos intentos fallidos por
+// direccion y luego una espera. Vive en memoria; reiniciar lo limpia, que es
+// suficiente para lo que protege.
+const INTENTOS_MAXIMOS = 8;
+const ESPERA_MS = 10 * 60_000;
+const intentos = new Map();
+
+const ahora = () => Date.now();
+
+function bloqueado(llave) {
+  const registro = intentos.get(llave);
+  if (!registro) return 0;
+  if (ahora() > registro.hasta) {
+    intentos.delete(llave);
+    return 0;
   }
+  return registro.fallos >= INTENTOS_MAXIMOS
+    ? Math.ceil((registro.hasta - ahora()) / 60_000)
+    : 0;
+}
 
-  // Comparacion de duracion constante: comparar con === delata la contrasena
-  // por el tiempo que tarda en fallar.
-  const iguales = (a, b) => {
-    const x = Buffer.from(a);
-    const y = Buffer.from(b);
-    return x.length === y.length && crypto.timingSafeEqual(x, y);
-  };
+function anotarFallo(llave) {
+  const registro = intentos.get(llave) || { fallos: 0, hasta: 0 };
+  registro.fallos += 1;
+  registro.hasta = ahora() + ESPERA_MS;
+  intentos.set(llave, registro);
+}
 
+/** Deja pasar a quien traiga una sesion valida; al resto lo manda a entrar. */
+export function exigirSesion({ publicas = [] } = {}) {
   return (req, res, next) => {
     if (publicas.includes(req.path)) return next();
 
-    const [tipo, credencial] = (req.headers.authorization || '').split(' ');
-    if (tipo === 'Basic' && credencial) {
-      const texto = Buffer.from(credencial, 'base64').toString('utf8');
-      const corte = texto.indexOf(':');
-      if (
-        corte > 0 &&
-        iguales(texto.slice(0, corte), usuario) &&
-        iguales(texto.slice(corte + 1), clave)
-      ) {
-        return next();
-      }
+    const usuario = sesion.usuarioDe(req);
+    if (usuario) {
+      req.usuario = usuario;
+      return next();
     }
 
-    res
-      .status(401)
-      .set('WWW-Authenticate', 'Basic realm="Generador de contratos", charset="UTF-8"')
-      .json({ error: 'Se requiere usuario y contraseña.' });
+    if (req.path.startsWith('/api/')) {
+      return res.status(401).json({ error: 'Tu sesión terminó. Vuelve a entrar.' });
+    }
+    res.redirect(`/entrar?destino=${encodeURIComponent(req.originalUrl)}`);
   };
+}
+
+export async function entrar(req, res) {
+  const { usuario, clave } = req.body || {};
+  const llave = req.ip || 'desconocido';
+
+  const minutos = bloqueado(llave);
+  if (minutos) {
+    return res.status(429).json({
+      error: `Demasiados intentos fallidos. Vuelve a intentar en ${minutos} minuto(s).`,
+    });
+  }
+
+  if (!usuario || !clave || !(await usuarios.verificar(String(usuario), clave))) {
+    anotarFallo(llave);
+    return res.status(401).json({ error: 'Usuario o contraseña incorrectos.' });
+  }
+
+  intentos.delete(llave);
+  sesion.guardarCookie(req, res, String(usuario));
+  res.json({ usuario: String(usuario) });
+}
+
+export function salir(req, res) {
+  sesion.borrarCookie(req, res);
+  res.json({ ok: true });
 }
