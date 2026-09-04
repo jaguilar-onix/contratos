@@ -81,7 +81,7 @@ app.post(
       mimetype: f.mimetype,
       originalname: f.originalname,
       titulo: titulos[i] || f.originalname,
-      separador: req.body.separadores !== 'false',
+      separador: req.body.separadores === 'true',
     }));
 
     // El folio lo escribe quien genera el contrato, y de ahi pasa a una

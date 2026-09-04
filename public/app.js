@@ -15,6 +15,9 @@ const pesoLegible = (b) =>
 const etiquetar = (campo) =>
   campo.replace(/[_-]+/g, ' ').replace(/^./, (c) => c.toUpperCase());
 
+// "depositos" -> "Deposito", para rotular cada fila de un bloque repetible.
+const singular = (nombre) => etiquetar(nombre).replace(/s$/i, '');
+
 function mostrar(mensaje, tipo = '') {
   estado.textContent = mensaje;
   estado.className = `estado ${tipo}`;
@@ -96,9 +99,12 @@ function construirLista(campo) {
   const filas = document.createElement('div');
   filas.className = 'filas';
 
+  // Las filas se rotulan con el numero que llevaran en el documento: si la
+  // enumeracion ya empezo fuera del bloque, la primera fila no es la 1.
+  const desde = campo.desde || 1;
   const renumerar = () => {
     [...filas.children].forEach((fila, i) => {
-      fila.querySelector('.orden').textContent = `${i + 1}.`;
+      fila.querySelector('.orden').textContent = `${singular(campo.nombre)} ${desde + i}`;
       fila.querySelector('.quitar').disabled = filas.children.length === 1;
     });
   };
@@ -126,7 +132,7 @@ function construirLista(campo) {
   const agregar = document.createElement('button');
   agregar.type = 'button';
   agregar.className = 'secundario';
-  agregar.textContent = `Agregar ${etiquetar(campo.nombre).toLowerCase()}`;
+  agregar.textContent = `Agregar ${singular(campo.nombre).toLowerCase()}`;
   agregar.addEventListener('click', agregarFila);
 
   bloque.append(filas, agregar);

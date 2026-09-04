@@ -80,13 +80,19 @@ export function detectarCampos(buffer) {
         if (etiqueta.startsWith('#') || etiqueta.startsWith('^')) {
           const nombre = etiqueta.slice(1).trim();
           const existente = destino().find((c) => c.nombre === nombre);
-          const lista = existente || { nombre, tipo: 'lista', campos: [] };
+          const lista = existente || { nombre, tipo: 'lista', desde: 1, campos: [] };
           if (!existente) destino().push(lista);
           abiertos.push(lista);
           continue;
         }
-        // La numeracion la aporta la aplicacion; no se captura.
-        if (abiertos.length && /^(indice|ordinal\d*)$/.test(etiqueta)) continue;
+        // La numeracion la aporta la aplicacion; no se captura. De {{ordinalN}}
+        // se toma desde que numero enumera la lista, para que el formulario
+        // rotule cada fila igual que saldra en el documento.
+        const numeracion = etiqueta.match(/^(?:indice|ordinal(\d*))$/);
+        if (abiertos.length && numeracion) {
+          abiertos.at(-1).desde = Number(numeracion[1]) || 1;
+          continue;
+        }
         agregar({ nombre: etiqueta, tipo: 'texto' });
       }
     }

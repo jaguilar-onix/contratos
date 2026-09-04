@@ -11,8 +11,9 @@ con el contrato y todos sus anexos (identificaciones, comprobantes, planos).
    detecta las variables y arma el formulario automáticamente.
 2. **Capturas los datos** de ese contrato en particular.
 3. **Adjuntas imágenes (JPG/PNG) y PDFs**, en el orden que quieras.
-4. **Descargas un PDF único**: contrato + carátula de cada anexo + los anexos,
-   con folio y numeración de página al pie.
+4. **Descargas un PDF único**: los documentos del juego seguidos de sus anexos,
+   con folio y numeración de página al pie. Si quieres que cada anexo lleve una
+   hoja que lo presente, actívalo con la casilla de carátulas.
 
 El machote se rellena como Word, no como texto plano: se conservan membretes,
 tablas, tipografías, numeración y saltos de página tal como los diseñaste.
@@ -57,6 +58,9 @@ Dentro del bloque, la app aporta la numeración y no hace falta capturarla:
 | `{{ordinal}}` | primer, segundo, tercer… |
 | `{{ordinal2}}` | segundo, tercer, cuarto… (cuando la enumeración ya empezó antes del bloque) |
 | `{{ordinal3}}` | tercer, cuarto, quinto… |
+
+El formulario rotula cada fila con el número que le tocará en el documento: si el
+bloque usa `{{ordinal2}}`, la primera fila aparece como «2».
 
 Reglas prácticas:
 
@@ -122,7 +126,7 @@ entre reinicios (en Docker ya está montado como volumen).
 | `anexos`         | Archivos JPG, PNG o PDF (hasta 25).                      |
 | `titulosAnexos`  | JSON con el título de cada anexo, en el mismo orden.     |
 | `folio`          | Folio propio; si se omite se genera `CTO-AAAAMMDD-XXXX`. |
-| `separadores`    | `false` para omitir la carátula de cada anexo.           |
+| `separadores`    | `true` para anteponer una carátula a cada anexo (por omisión no). |
 | `folioEn`        | Dónde estampar el folio: `anexos` (omisión), `todo`, `ninguno`. |
 | `permitirVacios` | `true` para generar aunque falten campos por capturar.   |
 
