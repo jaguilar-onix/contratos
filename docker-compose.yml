@@ -1,0 +1,11 @@
+services:
+  contratos:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      # Los machotes viven aqui: sin este volumen se pierden al recrear el contenedor.
+      - ./data:/app/data
+    environment:
+      LIMITE_MB: 25
+    restart: unless-stopped

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Generador de contratos</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="barra">
+    <h1>Generador de contratos</h1>
+    <p>Llena el machote, adjunta los documentos y descarga un solo PDF.</p>
+  </header>
+
+  <main>
+    <section class="paso">
+      <h2><span class="num">1</span> Machote</h2>
+      <div class="fila">
+        <select id="plantilla"><option value="">Cargando…</option></select>
+        <button type="button" id="btn-borrar" class="secundario" hidden>Eliminar</button>
+      </div>
+      <details id="subir-machote">
+        <summary>Subir un machote nuevo (.docx)</summary>
+        <p class="ayuda">
+          En tu documento de Word, escribe cada dato variable entre dobles llaves:
+          <code>{{nombre_arrendatario}}</code>, <code>{{monto_renta}}</code>,
+          <code>{{fecha_firma}}</code>. La aplicación los detecta y arma el formulario.
+        </p>
+        <div class="fila">
+          <input type="file" id="archivo-machote" accept=".docx" />
+          <button type="button" id="btn-subir">Subir</button>
+        </div>
+      </details>
+    </section>
+
+    <section class="paso" id="paso-datos" hidden>
+      <h2><span class="num">2</span> Datos del contrato</h2>
+      <div id="campos" class="campos"></div>
+    </section>
+
+    <section class="paso" id="paso-anexos" hidden>
+      <h2><span class="num">3</span> Anexos</h2>
+      <p class="ayuda">Imágenes (JPG, PNG) y PDFs. Arrastra las filas para reordenarlas.</p>
+      <input type="file" id="archivo-anexos" accept="image/png,image/jpeg,application/pdf" multiple />
+      <ul id="lista-anexos" class="anexos"></ul>
+      <label class="check">
+        <input type="checkbox" id="separadores" checked />
+        Insertar una carátula antes de cada anexo
+      </label>
+    </section>
+
+    <section class="paso" id="paso-generar" hidden>
+      <h2><span class="num">4</span> Generar</h2>
+      <div class="fila">
+        <label class="campo">
+          <span>Folio</span>
+          <input type="text" id="folio" placeholder="Se genera automáticamente" />
+        </label>
+      </div>
+      <button type="button" id="btn-generar" class="principal">Generar PDF</button>
+      <p id="estado" class="estado" role="status"></p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

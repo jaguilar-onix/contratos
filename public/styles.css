@@ -1,0 +1,133 @@
+:root {
+  --fondo: #f6f6f4;
+  --tarjeta: #fff;
+  --borde: #e2e2dd;
+  --texto: #1c1c1a;
+  --suave: #6b6b66;
+  --acento: #1f6f4f;
+  --error: #a8321f;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.barra {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--borde);
+  background: var(--tarjeta);
+}
+.barra h1 { margin: 0; font-size: 21px; letter-spacing: -0.01em; }
+.barra p { margin: 4px 0 0; color: var(--suave); font-size: 14px; }
+
+main {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.paso {
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 20px;
+}
+.paso h2 {
+  margin: 0 0 14px;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.num {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--acento);
+  color: #fff;
+  font-size: 12px;
+}
+
+.fila { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.fila > select, .fila > .campo { flex: 1; min-width: 200px; }
+
+.campos { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.campo { display: flex; flex-direction: column; gap: 4px; }
+.campo span { font-size: 12px; color: var(--suave); text-transform: capitalize; }
+
+input[type="text"], select, textarea {
+  padding: 9px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 7px;
+  background: #fff;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--acento);
+  outline-offset: -1px;
+}
+input.faltante { border-color: var(--error); }
+
+input[type="file"] { font-size: 13px; }
+
+button {
+  padding: 9px 16px;
+  border: 1px solid var(--borde);
+  border-radius: 7px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+button:hover { background: #f0f0ec; }
+button.principal {
+  background: var(--acento);
+  border-color: var(--acento);
+  color: #fff;
+  font-weight: 500;
+}
+button.principal:hover { filter: brightness(1.08); }
+button:disabled { opacity: 0.55; cursor: default; }
+
+summary { cursor: pointer; font-size: 14px; color: var(--acento); }
+details { margin-top: 14px; }
+.ayuda { color: var(--suave); font-size: 13px; margin: 8px 0; }
+code { background: #ececE6; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+.anexos { list-style: none; margin: 14px 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.anexos li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: #fbfbf9;
+}
+.anexos li.arrastrando { opacity: 0.4; }
+.anexos .asa { cursor: grab; color: var(--suave); }
+.anexos .letra {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--acento);
+  min-width: 54px;
+}
+.anexos .nombre { flex: 1; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.anexos .peso { font-size: 12px; color: var(--suave); }
+.anexos button { padding: 3px 9px; font-size: 12px; }
+
+.check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--suave); }
+.estado { margin: 12px 0 0; font-size: 13px; min-height: 20px; }
+.estado.error { color: var(--error); }
+.estado.exito { color: var(--acento); }

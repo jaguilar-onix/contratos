@@ -1,0 +1,20 @@
+{
+  "name": "contratos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generador de contratos: rellena un machote .docx y arma un PDF unico con sus anexos",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "docxtemplater": "^3.50.0",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "pdf-lib": "^1.17.1",
+    "pizzip": "^3.1.7"
+  }
+}
