@@ -10,6 +10,8 @@ services:
       - "3000:3000"
     volumes:
       # Los machotes viven aqui: incluye esta carpeta en Hyper Backup.
+      # Creala a mano antes de arrancar: Container Manager no crea las carpetas
+      # que faltan y el contenedor falla con "Bind mount failed".
       - ./data:/app/data
     environment:
       LIMITE_MB: 25

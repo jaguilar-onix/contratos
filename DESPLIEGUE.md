@@ -75,7 +75,11 @@ Cada vez que se sube un cambio al repositorio, el flujo la reconstruye.
 ### Instalar
 
 1. Instala **Container Manager** desde el Centro de paquetes.
-2. Crea una carpeta para el proyecto, por ejemplo `/volume1/docker/contratos`.
+2. En **File Station**, crea la carpeta del proyecto, por ejemplo
+   `/volume1/docker/contratos`, y **dentro de ella una carpeta llamada `data`**.
+   Container Manager no crea las carpetas que faltan: si `data` no existe, el
+   contenedor no arranca y avisa
+   `Bind mount failed: '/volume1/docker/contratos/data' does not exist`.
 3. En Container Manager: **Proyecto → Crear**.
    - *Nombre del proyecto:* `contratos`
    - *Ruta:* la carpeta que creaste
@@ -101,7 +105,7 @@ services:
     restart: unless-stopped
 ```
 
-La carpeta `data` se crea sola dentro del proyecto la primera vez que arranca.
+En esa carpeta `data` quedan los machotes. Es la que hay que respaldar.
 
 Si vas a publicarlo fuera de la red local, agrega ahí mismo el usuario y la
 contraseña:
