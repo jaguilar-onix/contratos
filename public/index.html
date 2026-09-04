@@ -19,15 +19,21 @@
         <select id="plantilla"><option value="">Cargando…</option></select>
         <button type="button" id="btn-borrar" class="secundario" hidden>Eliminar</button>
       </div>
+      <p id="documentos" class="ayuda"></p>
       <details id="subir-machote">
         <summary>Subir un machote nuevo (.docx o .dotx)</summary>
         <p class="ayuda">
           En tu documento de Word, escribe cada dato variable entre dobles llaves:
-          <code>{{nombre_arrendatario}}</code>, <code>{{monto_renta}}</code>,
+          <code>{{nombre_comprador}}</code>, <code>{{precio}}</code>,
           <code>{{fecha_firma}}</code>. La aplicación los detecta y arma el formulario.
         </p>
+        <p class="ayuda">
+          Puedes seleccionar <strong>varios documentos</strong> a la vez (el contrato
+          y su carátula, por ejemplo): se guardan como un mismo juego, en el orden en
+          que aparecen, y los datos que compartan se capturan una sola vez.
+        </p>
         <div class="fila">
-          <input type="file" id="archivo-machote" accept=".docx,.dotx" />
+          <input type="file" id="archivo-machote" accept=".docx,.dotx" multiple />
           <button type="button" id="btn-subir">Subir</button>
         </div>
       </details>

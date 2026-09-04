@@ -35,7 +35,8 @@ async function cargarPlantillas(seleccionar) {
     ? ''
     : '<option value="">— Sube tu primer machote —</option>';
   for (const p of lista) {
-    const op = new Option(`${p.nombre} (${p.campos.length} campos)`, p.id);
+    const docs = p.documentos.length > 1 ? `, ${p.documentos.length} documentos` : '';
+    const op = new Option(`${p.nombre} (${p.campos.length} campos${docs})`, p.id);
     op._meta = p;
     selectPlantilla.add(op);
   }
@@ -52,6 +53,9 @@ function usarPlantillaSeleccionada() {
   const opcion = selectPlantilla.selectedOptions[0];
   plantillaActual = opcion?._meta || null;
   $('#btn-borrar').hidden = !plantillaActual;
+  $('#documentos').textContent = plantillaActual
+    ? `Documentos del juego: ${plantillaActual.documentos.map((d) => d.nombre).join(' · ')}`
+    : '';
   for (const id of ['#paso-datos', '#paso-anexos', '#paso-generar']) {
     $(id).hidden = !plantillaActual;
   }
@@ -75,16 +79,17 @@ function usarPlantillaSeleccionada() {
 selectPlantilla.addEventListener('change', usarPlantillaSeleccionada);
 
 $('#btn-subir').addEventListener('click', async () => {
-  const archivo = $('#archivo-machote').files[0];
-  if (!archivo) return mostrar('Elige un archivo .docx o .dotx.', 'error');
+  const archivos = [...$('#archivo-machote').files];
+  if (!archivos.length) return mostrar('Elige uno o varios archivos .docx o .dotx.', 'error');
   const cuerpo = new FormData();
-  cuerpo.append('machote', archivo);
+  for (const archivo of archivos) cuerpo.append('machote', archivo);
   try {
     const meta = await pedirJson('/api/plantillas', { method: 'POST', body: cuerpo });
     $('#archivo-machote').value = '';
     $('#subir-machote').open = false;
     await cargarPlantillas(meta.id);
-    mostrar(`Machote cargado con ${meta.campos.length} campos.`, 'exito');
+    const docs = meta.documentos.length > 1 ? ` (${meta.documentos.length} documentos)` : '';
+    mostrar(`Machote cargado con ${meta.campos.length} campos${docs}.`, 'exito');
   } catch (e) {
     mostrar(e.message, 'error');
   }

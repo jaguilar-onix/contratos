@@ -5,8 +5,10 @@ con el contrato y todos sus anexos (identificaciones, comprobantes, planos).
 
 ## Cómo funciona
 
-1. **Subes tu machote `.docx` o `.dotx`** una sola vez. La app detecta las variables y arma
-   el formulario automáticamente.
+1. **Subes tu machote una sola vez** (`.docx` o `.dotx`). Puedes subir **varios
+   documentos como un mismo juego** —el contrato y su carátula, por ejemplo—: se
+   generan en orden y los datos que compartan se capturan una sola vez. La app
+   detecta las variables y arma el formulario automáticamente.
 2. **Capturas los datos** de ese contrato en particular.
 3. **Adjuntas imágenes (JPG/PNG) y PDFs**, en el orden que quieras.
 4. **Descargas un PDF único**: contrato + carátula de cada anexo + los anexos,
@@ -34,7 +36,8 @@ Reglas prácticas:
 
 - Usa nombres sin espacios: `{{nombre_arrendatario}}`, no `{{nombre del arrendatario}}`.
   El formulario los muestra ya legibles ("Nombre arrendatario").
-- La misma variable puede repetirse cuantas veces quiera; se captura una sola vez.
+- La misma variable puede repetirse cuantas veces quiera, incluso entre documentos
+  distintos del mismo juego; se captura una sola vez.
 - Funciona también en encabezados y pies de página.
 - Si Word te autocorrige las llaves, escríbelas y luego usa *Deshacer* (Ctrl+Z)
   una vez para revertir la autocorrección conservando el texto.
@@ -80,7 +83,7 @@ entre reinicios (en Docker ya está montado como volumen).
 | Método   | Ruta                   | Descripción                                          |
 | -------- | ---------------------- | ---------------------------------------------------- |
 | `GET`    | `/api/plantillas`      | Lista los machotes con sus campos detectados.        |
-| `POST`   | `/api/plantillas`      | Sube un machote `.docx` o `.dotx` (campo `machote`). |
+| `POST`   | `/api/plantillas`      | Sube uno o varios `.docx`/`.dotx` (campo `machote`). |
 | `DELETE` | `/api/plantillas/:id`  | Elimina un machote.                                  |
 | `POST`   | `/api/generar`         | Genera el PDF final y lo devuelve como descarga.     |
 
@@ -88,7 +91,7 @@ entre reinicios (en Docker ya está montado como volumen).
 
 | Campo            | Descripción                                              |
 | ---------------- | -------------------------------------------------------- |
-| `plantillaId`    | ID del machote.                                          |
+| `plantillaId`    | ID del juego de machotes.                                |
 | `datos`          | JSON `{ "variable": "valor" }`.                          |
 | `anexos`         | Archivos JPG, PNG o PDF (hasta 25).                      |
 | `titulosAnexos`  | JSON con el título de cada anexo, en el mismo orden.     |
@@ -101,7 +104,7 @@ entre reinicios (en Docker ya está montado como volumen).
 
 ```
 server/index.js         API y rutas
-server/lib/plantillas.js  detecta variables y rellena el .docx
+server/lib/plantillas.js  detecta variables y rellena los .docx del juego
 server/lib/pdf.js         convierte a PDF, arma anexos y une todo
 public/                 interfaz web
 ```

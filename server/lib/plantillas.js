@@ -77,15 +77,32 @@ export function rellenar(buffer, datos) {
   return doc.toBuffer();
 }
 
-export async function guardar(nombreArchivo, entrada) {
+const sinExtension = (nombre) => nombre.replace(/\.(docx|dotx)$/i, '');
+
+/**
+ * Un juego de contrato puede constar de varios documentos de Word (el contrato
+ * y su caratula, por ejemplo). Se guardan juntos y en orden: comparten los
+ * datos, asi que un campo repetido entre documentos se captura una sola vez.
+ */
+export async function guardar(archivos) {
   await fs.mkdir(DIR, { recursive: true });
-  const buffer = normalizar(entrada);
   const id = crypto.randomUUID();
-  const campos = detectarCampos(buffer);
-  await fs.writeFile(path.join(DIR, `${id}.docx`), buffer);
+
+  const documentos = [];
+  const campos = [];
+  for (const [i, archivo] of archivos.entries()) {
+    const buffer = normalizar(archivo.buffer);
+    await fs.writeFile(path.join(DIR, `${id}-${i}.docx`), buffer);
+    documentos.push({ nombre: sinExtension(archivo.originalname) });
+    for (const campo of detectarCampos(buffer)) {
+      if (!campos.includes(campo)) campos.push(campo);
+    }
+  }
+
   const meta = {
     id,
-    nombre: nombreArchivo.replace(/\.dotx?$|\.docx$/i, ''),
+    nombre: sinExtension(archivos[0].originalname),
+    documentos,
     campos,
     creado: new Date().toISOString(),
   };
@@ -106,7 +123,10 @@ export async function obtener(id) {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
   try {
     const meta = JSON.parse(await fs.readFile(path.join(DIR, `${id}.json`), 'utf8'));
-    return { ...meta, buffer: await fs.readFile(path.join(DIR, `${id}.docx`)) };
+    const buffers = await Promise.all(
+      meta.documentos.map((_, i) => fs.readFile(path.join(DIR, `${id}-${i}.docx`)))
+    );
+    return { ...meta, buffers };
   } catch {
     return null;
   }
@@ -114,7 +134,10 @@ export async function obtener(id) {
 
 export async function eliminar(id) {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return false;
-  await fs.rm(path.join(DIR, `${id}.docx`), { force: true });
+  const meta = await obtener(id);
+  for (const [i] of (meta?.documentos || []).entries()) {
+    await fs.rm(path.join(DIR, `${id}-${i}.docx`), { force: true });
+  }
   await fs.rm(path.join(DIR, `${id}.json`), { force: true });
   return true;
 }

@@ -26,14 +26,16 @@ app.get('/api/plantillas', asincrono(async (_req, res) => {
   res.json(await plantillas.listar());
 }));
 
-app.post('/api/plantillas', subida.single('machote'), asincrono(async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'Falta el archivo del machote.' });
-  if (!EXT_MACHOTE.test(req.file.originalname)) {
-    return res
-      .status(400)
-      .json({ error: 'El machote debe ser un archivo .docx o .dotx de Word.' });
+app.post('/api/plantillas', subida.array('machote', 10), asincrono(async (req, res) => {
+  const archivos = req.files || [];
+  if (!archivos.length) return res.status(400).json({ error: 'Falta el archivo del machote.' });
+  const invalido = archivos.find((f) => !EXT_MACHOTE.test(f.originalname));
+  if (invalido) {
+    return res.status(400).json({
+      error: `"${invalido.originalname}" no es un documento de Word (.docx o .dotx).`,
+    });
   }
-  const meta = await plantillas.guardar(req.file.originalname, req.file.buffer);
+  const meta = await plantillas.guardar(archivos);
   if (meta.campos.length === 0) {
     return res.status(400).json({
       error:
@@ -81,9 +83,14 @@ app.post(
     }));
 
     const folio = (req.body.folio || '').trim() || folioNuevo();
-    const contrato = await docxAPdf(plantillas.rellenar(plantilla.buffer, datos));
+    // En serie y no en paralelo: cada conversion levanta su propio LibreOffice,
+    // y varios a la vez en un juego de documentos no compensa la memoria.
+    const documentos = [];
+    for (const buffer of plantilla.buffers) {
+      documentos.push(await docxAPdf(plantillas.rellenar(buffer, datos)));
+    }
     const pdf = await armarExpediente({
-      contrato,
+      documentos,
       anexos,
       folio,
       folioEn: ['todo', 'anexos', 'ninguno'].includes(req.body.folioEn)

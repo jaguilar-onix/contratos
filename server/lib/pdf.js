@@ -122,7 +122,7 @@ async function caratula(titulo, subtitulo) {
  * 'todo' o 'ninguno'. Muchos machotes ya traen su propio pie de pagina, y
  * estampar encima de el deja las dos numeraciones superpuestas.
  */
-export async function armarExpediente({ contrato, anexos = [], folio, folioEn = 'anexos' }) {
+export async function armarExpediente({ documentos, anexos = [], folio, folioEn = 'anexos' }) {
   const final = await PDFDocument.create();
   final.setTitle(folio || 'Contrato');
   final.setProducer('Generador de contratos');
@@ -133,7 +133,7 @@ export async function armarExpediente({ contrato, anexos = [], folio, folioEn = 
     for (const p of paginas) final.addPage(p);
   };
 
-  await copiar(contrato);
+  for (const documento of documentos) await copiar(documento);
   const paginasDelContrato = final.getPageCount();
 
   for (const [i, anexo] of anexos.entries()) {
