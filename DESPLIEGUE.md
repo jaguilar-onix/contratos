@@ -1,9 +1,24 @@
 # Despliegue
 
-## Por qué no funciona en un hosting compartido
+La aplicación se entrega como una imagen de Docker: donde corra un contenedor,
+corre esto. Hay tres caminos probados, de menos a más administración:
 
-El hosting compartido de Hostinger (y el de cualquier proveedor) no sirve para
-esta aplicación, por dos razones que no tienen rodeo:
+| Dónde | Cuesta | Para quién |
+| --- | --- | --- |
+| [Un Synology propio](#en-un-synology) | Nada extra | Uso interno; los datos no salen de la oficina |
+| [Render](#en-render) | ~7 USD/mes | Publicarlo sin administrar un servidor |
+| [Un VPS](#en-un-vps) | ~6.5 USD/mes | Control total, a cambio de mantenerlo |
+
+En todos, la contraseña de acceso se configura igual: las variables
+`ACCESO_USUARIO` y `ACCESO_CLAVE`. **Sin ellas la aplicación queda abierta**, lo
+cual está bien en la red de la oficina y no lo está en internet.
+
+## Dónde NO funciona
+
+### Hosting compartido
+
+El hosting compartido de Hostinger (y el de cualquier proveedor) no sirve, por
+dos razones que no tienen rodeo:
 
 1. **No corre Node.js.** Los planes compartidos ejecutan PHP detrás de Apache o
    LiteSpeed. Esta aplicación es un proceso de Node que debe quedarse
@@ -17,16 +32,80 @@ El segundo punto es el de fondo: aunque el proveedor habilitara Node, sin
 LibreOffice no hay PDF. Es lo que permite conservar el machote tal cual, con su
 logo, sus tablas y su numeración.
 
-## Dónde sí funciona
-
-Un **VPS**, que es una máquina con acceso de root. En Hostinger es otro
-producto, y el plan de entrada alcanza de sobra: la conversión de un contrato
-tarda un par de segundos y consume poca memoria.
-
 El hosting compartido que ya tengas sigue sirviendo para tu sitio web. Esto va
-aparte, en un subdominio.
+aparte.
 
-## Pasos
+### Netlify, Vercel y similares
+
+Tampoco, por el mismo motivo de fondo y con un límite más estrecho: LibreOffice
+mide 256 MB instalado (101 MB comprimido) y el tope de una función de Netlify es
+de 50 MB comprimidos, sin opción de usar un contenedor propio. A eso se suman el
+límite de 6 MB por petición —un INE escaneado pesa más— y que no hay disco
+donde vivan los machotes.
+
+---
+
+## En un Synology
+
+Es la opción más barata y la más discreta con los datos: los contratos nunca
+salen de la oficina.
+
+**Requisitos.** El NAS debe poder instalar **Container Manager**, que pide un
+procesador Intel o AMD (series `+`, `xs`, y varios modelos recientes). Los
+equipos con procesador Realtek o Marvell no lo admiten. Conviene 2 GB de RAM o
+más: LibreOffice pide unos cuantos cientos de megabytes mientras convierte.
+
+1. En DSM, instala **Container Manager** desde el Centro de paquetes.
+2. Copia el proyecto a una carpeta compartida, por ejemplo `/volume1/docker/contratos`.
+   Puedes clonarlo por SSH o descargar el ZIP del repositorio y descomprimirlo ahí.
+3. Crea el archivo `.env` en esa carpeta a partir de `.env.ejemplo`, con el
+   usuario y la contraseña de acceso.
+4. En Container Manager, **Proyecto → Crear**, apunta a esa carpeta y elige
+   `docker-compose.yml`. La primera construcción tarda: descarga LibreOffice.
+5. Entra desde la red de la oficina a `http://IP-DEL-NAS:3000`.
+
+**Para usarlo fuera de la oficina**, DSM ya trae lo necesario: en *Panel de
+control → Portal de inicio de sesión → Avanzado → Proxy inverso*, publica un
+subdominio hacia `localhost:3000`, y saca el certificado con Let's Encrypt desde
+*Seguridad → Certificado*. Si prefieres no abrir nada al exterior, la alternativa
+más segura es entrar por la VPN del NAS.
+
+> Al exponerlo fuera de la red local, define `ACCESO_USUARIO` y `ACCESO_CLAVE`
+> en el `.env`. Es lo único que separa los contratos de internet.
+
+**Respaldo:** la carpeta `data/plantillas` guarda los machotes. Inclúyela en las
+tareas de Hyper Backup que ya tengas.
+
+---
+
+## En Render
+
+Render construye el `Dockerfile` del repositorio y publica el servicio con HTTPS,
+sin servidor que administrar. El archivo `render.yaml` ya trae la configuración.
+
+1. Entra a Render con tu cuenta de GitHub y elige **New → Blueprint**.
+2. Selecciona el repositorio `jaguilar-onix/contratos` y la rama
+   `claude/contract-generator-attachments-v72com`.
+3. Render lee `render.yaml` y te pide las dos variables que faltan:
+   `ACCESO_USUARIO` y `ACCESO_CLAVE`.
+4. Aplica. La primera construcción tarda varios minutos: descarga LibreOffice.
+
+Quedará en `https://contratos.onrender.com`, o en tu propio dominio si lo
+agregas en *Settings → Custom Domains*.
+
+> El plan **starter** no es opcional: el gratuito no admite disco —los machotes
+> se borrarían en cada despliegue— y apaga el servicio por inactividad.
+
+Cada `git push` a esa rama vuelve a desplegar.
+
+---
+
+## En un VPS
+
+Con acceso de root. En Hostinger es otro producto que el hosting compartido, y
+el plan de entrada alcanza de sobra.
+
+### Pasos
 
 Todo lo que sigue se hace por SSH, conectado al VPS como root.
 
@@ -60,22 +139,12 @@ cd contratos
 
 ### 4. Configurar el acceso
 
-La aplicación no trae login propio, así que Caddy pide usuario y contraseña
-antes de dejar entrar. Genera la contraseña cifrada:
-
-```bash
-docker run --rm caddy:2-alpine caddy hash-password --plaintext 'la-que-elijas'
-```
-
-Copia el archivo de ejemplo y llena los tres valores:
+Copia el archivo de ejemplo y llena el dominio, el usuario y la contraseña:
 
 ```bash
 cp .env.ejemplo .env
 nano .env
 ```
-
-> En el `.env`, cada `$` del hash debe escribirse `$$`. Si no, Docker Compose se
-> come parte del texto y la contraseña no funciona.
 
 ### 5. Levantar
 
@@ -94,6 +163,8 @@ docker compose -f docker-compose.prod.yml logs -f  # Ctrl+C para salir
 ```
 
 ## Operación
+
+Los comandos que siguen son del despliegue en un VPS.
 
 **Actualizar a la última versión:**
 
@@ -121,7 +192,7 @@ docker stats --no-stream
 
 ## Notas de seguridad
 
-- La contraseña de Caddy es lo único que separa los contratos de internet.
+- La contraseña de acceso es lo único que separa los contratos de internet.
   Que sea larga, y cámbiala cuando alguien deje el equipo.
 - El repositorio es público. No subas machotes: llevan datos de la empresa
   (cuentas bancarias, escrituras). El `.gitignore` ya los excluye.

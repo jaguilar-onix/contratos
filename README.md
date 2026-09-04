@@ -110,9 +110,10 @@ docker compose up --build
 
 Abre <http://localhost:3000>.
 
-Para publicarlo en un servidor, con HTTPS y contraseña de acceso, sigue
-[DESPLIEGUE.md](DESPLIEGUE.md). **No sirve un hosting compartido**: la
-conversión a PDF necesita instalar LibreOffice, y eso pide acceso de root.
+Para publicarlo —en un Synology, en Render o en un VPS— sigue
+[DESPLIEGUE.md](DESPLIEGUE.md). **No sirve un hosting compartido ni Netlify**:
+la conversión a PDF necesita LibreOffice instalado, y ninguno de los dos lo
+permite.
 
 ### Sin Docker
 
@@ -131,11 +132,18 @@ npm start
 
 ## Configuración
 
-| Variable      | Por omisión | Para qué sirve                                 |
-| ------------- | ----------- | ---------------------------------------------- |
-| `PORT`        | `3000`      | Puerto del servidor.                            |
-| `LIMITE_MB`   | `25`        | Tamaño máximo por archivo adjunto.              |
-| `SOFFICE_BIN` | `soffice`   | Ruta al ejecutable de LibreOffice.              |
+| Variable          | Por omisión | Para qué sirve                                      |
+| ----------------- | ----------- | --------------------------------------------------- |
+| `PORT`            | `3000`      | Puerto del servidor.                                 |
+| `LIMITE_MB`       | `25`        | Tamaño máximo por archivo adjunto.                   |
+| `SOFFICE_BIN`     | `soffice`   | Ruta al ejecutable de LibreOffice.                   |
+| `ACCESO_USUARIO`  | —           | Usuario para entrar. Sin él, la app queda abierta.   |
+| `ACCESO_CLAVE`    | —           | Contraseña. Ambas son necesarias para que pida acceso. |
+
+Define `ACCESO_USUARIO` y `ACCESO_CLAVE` antes de que la aplicación sea
+alcanzable desde internet: los contratos y sus anexos llevan identificaciones y
+domicilios de los compradores. Al arrancar sin ellas, la aplicación lo advierte
+en la consola.
 
 Los machotes se guardan en `data/plantillas/`. Ese directorio debe persistir
 entre reinicios (en Docker ya está montado como volumen).
@@ -185,8 +193,8 @@ pie del contrato. Puedes cambiarlo a todo el expediente o desactivarlo.
 - **No subas machotes al repositorio.** Un contrato modelo suele traer datos de
   la empresa (cuentas bancarias, escrituras). `.gitignore` ya excluye `machotes/`
   y `data/`; súbelos por la interfaz, no por git.
-- **Sin autenticación.** No trae login; cualquiera que alcance el puerto puede
-  generar contratos. Ponla detrás de tu VPN o de un proxy con autenticación
-  antes de exponerla a internet.
+- **Protégela con contraseña.** `ACCESO_USUARIO` y `ACCESO_CLAVE` activan el
+  acceso por contraseña. Sin ellas, cualquiera que alcance el puerto genera
+  contratos y lee los datos de los compradores.
 - **Concurrencia.** Cada conversión usa su propio perfil de LibreOffice, así que
   varias personas pueden generar contratos al mismo tiempo sin pisarse.

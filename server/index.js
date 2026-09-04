@@ -1,6 +1,7 @@
 import path from 'node:path';
 import express from 'express';
 import multer from 'multer';
+import { acceso } from './lib/acceso.js';
 import * as plantillas from './lib/plantillas.js';
 import { docxAPdf, armarExpediente, folioNuevo } from './lib/pdf.js';
 
@@ -14,6 +15,18 @@ const subida = multer({
 });
 
 const EXT_MACHOTE = /\.(docx|dotx)$/i;
+
+// Render y otras plataformas consultan esta ruta para saber si el servicio
+// esta vivo; queda fuera de la contrasena o siempre responderia 401.
+app.get('/salud', (_req, res) => res.json({ ok: true }));
+
+app.use(
+  acceso({
+    usuario: process.env.ACCESO_USUARIO,
+    clave: process.env.ACCESO_CLAVE,
+    publicas: ['/salud'],
+  })
+);
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.resolve('public')));
@@ -134,4 +147,10 @@ app.use((err, _req, res, _next) => {
 
 app.listen(PUERTO, () => {
   console.log(`Generador de contratos escuchando en http://localhost:${PUERTO}`);
+  if (!process.env.ACCESO_USUARIO || !process.env.ACCESO_CLAVE) {
+    console.warn(
+      'AVISO: sin contraseña de acceso. Define ACCESO_USUARIO y ACCESO_CLAVE ' +
+        'antes de publicar esto en internet: los contratos llevan datos personales.'
+    );
+  }
 });

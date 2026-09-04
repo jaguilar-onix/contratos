@@ -1,0 +1,24 @@
+# Despliegue en Render. Al conectar el repositorio, Render lee este archivo,
+# construye el Dockerfile y publica el servicio con HTTPS.
+services:
+  - type: web
+    name: contratos
+    runtime: docker
+    # El plan gratuito no admite disco y apaga el servicio por inactividad:
+    # los machotes se perderian y el primer contrato del dia tardaria mas.
+    plan: starter
+    region: oregon
+    healthCheckPath: /salud
+    disk:
+      # Aqui viven los machotes; sin disco se borran en cada despliegue.
+      name: machotes
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      # Se capturan en el panel de Render, no en el repositorio.
+      - key: ACCESO_USUARIO
+        sync: false
+      - key: ACCESO_CLAVE
+        sync: false
+      - key: LIMITE_MB
+        value: 25

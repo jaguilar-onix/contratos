@@ -1,13 +1,8 @@
-# Publica la aplicacion con HTTPS y una contrasena de acceso.
-# Las variables se definen en el archivo .env (ver .env.ejemplo).
+# Solo resuelve el certificado HTTPS y pasa el trafico a la aplicacion.
+# La contrasena de acceso la pide la propia aplicacion (ACCESO_USUARIO y
+# ACCESO_CLAVE), de modo que es la misma en cualquier forma de desplegarla.
 {$DOMINIO} {
 	encode zstd gzip
-
-	# La app no trae login propio: sin esto, cualquiera que sepa la direccion
-	# podria generar contratos y leer los datos de los compradores.
-	basic_auth {
-		{$USUARIO} {$CLAVE_HASH}
-	}
 
 	# Un anexo escaneado pesa mas que el limite por omision de Caddy.
 	request_body {

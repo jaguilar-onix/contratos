@@ -8,4 +8,8 @@ services:
       - ./data:/app/data
     environment:
       LIMITE_MB: 25
+      # Sin estas dos, la aplicacion corre abierta: comodo en la red de la
+      # oficina, inaceptable en cuanto sea alcanzable desde internet.
+      ACCESO_USUARIO: ${ACCESO_USUARIO:-}
+      ACCESO_CLAVE: ${ACCESO_CLAVE:-}
     restart: unless-stopped

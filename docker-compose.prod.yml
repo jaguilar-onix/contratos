@@ -13,6 +13,8 @@ services:
       - ./data:/app/data
     environment:
       LIMITE_MB: 25
+      ACCESO_USUARIO: ${ACCESO_USUARIO:?falta ACCESO_USUARIO en .env}
+      ACCESO_CLAVE: ${ACCESO_CLAVE:?falta ACCESO_CLAVE en .env}
     restart: unless-stopped
 
   caddy:
@@ -26,8 +28,6 @@ services:
       - caddy_config:/config
     environment:
       DOMINIO: ${DOMINIO:?falta DOMINIO en .env}
-      USUARIO: ${USUARIO:?falta USUARIO en .env}
-      CLAVE_HASH: ${CLAVE_HASH:?falta CLAVE_HASH en .env}
     depends_on:
       - contratos
     restart: unless-stopped
