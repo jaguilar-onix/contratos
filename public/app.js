@@ -67,20 +67,24 @@ function usarPlantillaSeleccionada() {
 
   for (const campo of plantillaActual.campos) {
     contenedorCampos.append(
-      campo.tipo === 'lista' ? construirLista(campo) : construirCampo(campo.nombre)
+      campo.tipo === 'lista' ? construirLista(campo) : construirCampo(campo)
     );
   }
 }
 
-function construirCampo(nombre, valor = '') {
+function construirCampo(campo) {
   const label = document.createElement('label');
   label.className = 'campo';
-  label.innerHTML = `<span>${etiquetar(nombre)}</span>`;
+  label.innerHTML = `<span>${etiquetar(campo.nombre)}</span>`;
   const input = document.createElement('input');
-  input.type = 'text';
-  input.name = nombre;
-  input.value = valor;
+  input.name = campo.nombre;
   input.autocomplete = 'off';
+  if (campo.tipo === 'numero') {
+    // Cuantas veces se repite lo que dice el parrafo: uno, salvo que se indique.
+    Object.assign(input, { type: 'number', min: 1, step: 1, value: 1 });
+  } else {
+    input.type = 'text';
+  }
   input.addEventListener('input', () => input.classList.remove('faltante'));
   label.append(input);
   return label;
@@ -115,7 +119,7 @@ function construirLista(campo) {
     fila.innerHTML = '<span class="orden"></span>';
     const campos = document.createElement('div');
     campos.className = 'campos';
-    for (const sub of campo.campos) campos.append(construirCampo(sub.nombre));
+    for (const sub of campo.campos) campos.append(construirCampo(sub));
     const quitar = document.createElement('button');
     quitar.type = 'button';
     quitar.className = 'quitar';

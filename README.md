@@ -62,6 +62,34 @@ Dentro del bloque, la app aporta la numeración y no hace falta capturarla:
 El formulario rotula cada fila con el número que le tocará en el documento: si el
 bloque usa `{{ordinal2}}`, la primera fila aparece como «2».
 
+### Redacción en singular o en plural
+
+Cuando una fila puede amparar una cosa o varias iguales —un depósito, o doce
+pagos del mismo importe— se captura **un número** y el machote elige la
+redacción. De cualquier campo numérico, la app deriva dos valores:
+
+| Variable | Vale |
+| --- | --- |
+| `{{pagos_en_letras}}` | El número escrito con palabras, con mayúscula inicial: «Doce» |
+| `{{#pagos_varios}}` … `{{/pagos_varios}}` | Solo cuando el número es mayor que uno |
+| `{{^pagos_varios}}` … `{{/pagos_varios}}` | Solo cuando es uno |
+
+El campo que se captura es `pagos`; los dos derivados no aparecen en el
+formulario. Cada alternativa se escribe como un párrafo completo entre sus
+etiquetas, y estas van en párrafos propios:
+
+```
+{{^pagos_varios}}
+Un {{ordinal}} depósito por la cantidad de ${{importe}}, a más tardar el día {{fecha}}.
+{{/pagos_varios}}
+{{#pagos_varios}}
+{{pagos_en_letras}} pagos por la cantidad de ${{importe}} cada uno, a más tardar los días {{fecha}}.
+{{/pagos_varios}}
+```
+
+Una fila con varios pagos sigue contando como **una** en la numeración: si la
+fila 2 ampara doce pagos, la siguiente es la 3, no la 14.
+
 Reglas prácticas:
 
 - Usa nombres sin espacios: `{{nombre_arrendatario}}`, no `{{nombre del arrendatario}}`.

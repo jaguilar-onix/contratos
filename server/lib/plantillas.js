@@ -44,6 +44,61 @@ function textoPorParrafo(xml) {
   );
 }
 
+const UNIDADES = ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
+const DIEZ_A_VEINTINUEVE = [
+  'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete',
+  'dieciocho', 'diecinueve', 'veinte', 'veintiún', 'veintidós', 'veintitrés',
+  'veinticuatro', 'veinticinco', 'veintiséis', 'veintisiete', 'veintiocho', 'veintinueve',
+];
+const DECENAS = ['', '', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta',
+  'setenta', 'ochenta', 'noventa'];
+const CENTENAS = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos',
+  'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+
+/**
+ * Escribe un entero de 1 a 999 con palabras, en la forma que antecede a un
+ * sustantivo masculino: 21 es "veintiún pagos", no "veintiuno pagos".
+ */
+function enLetras(n) {
+  if (n === 100) return 'cien';
+  if (n < 10) return UNIDADES[n];
+  if (n < 30) return DIEZ_A_VEINTINUEVE[n - 10];
+  if (n < 100) {
+    const unidad = n % 10;
+    const decena = DECENAS[Math.floor(n / 10)];
+    return unidad ? `${decena} y ${UNIDADES[unidad]}` : decena;
+  }
+  const resto = n % 100;
+  const centena = CENTENAS[Math.floor(n / 100)];
+  return resto ? `${centena} ${enLetras(resto)}` : centena;
+}
+
+const mayuscula = (t) => t.replace(/^./, (c) => c.toUpperCase());
+
+/**
+ * Valores que la aplicacion deriva de un campo numerico, para que el machote
+ * pueda redactar en singular o en plural sin capturar nada mas:
+ *
+ *   {{#pagos_varios}}{{pagos_en_letras}} pagos de …{{/pagos_varios}}
+ *   {{^pagos_varios}}Un pago de …{{/pagos_varios}}
+ */
+const DERIVADOS = { _en_letras: 1, _varios: 1 };
+const baseDerivada = (etiqueta) => {
+  const m = etiqueta.match(/^(.+?)(_en_letras|_varios)$/);
+  return m && DERIVADOS[m[2]] ? m[1] : null;
+};
+
+function derivar(datos) {
+  const salida = { ...datos };
+  for (const [clave, valor] of Object.entries(datos)) {
+    const n = Number(String(valor).trim());
+    if (!Number.isInteger(n) || n < 1 || n > 999) continue;
+    salida[`${clave}_en_letras`] ??= mayuscula(enLetras(n));
+    salida[`${clave}_varios`] ??= n > 1;
+  }
+  return salida;
+}
+
 const ORDINALES = [
   'primer', 'segundo', 'tercer', 'cuarto', 'quinto', 'sexto', 'séptimo',
   'octavo', 'noveno', 'décimo', 'décimo primer', 'décimo segundo',
@@ -63,7 +118,10 @@ export function detectarCampos(buffer) {
 
   const campos = [];
   const abiertos = [];
-  const destino = () => (abiertos.length ? abiertos.at(-1).campos : campos);
+  // Una condicion no crea un nivel de captura: los campos que envuelve
+  // pertenecen a la lista que la contiene, o al documento si no hay ninguna.
+  const listaAbierta = () => [...abiertos].reverse().find((a) => a.tipo === 'lista');
+  const destino = () => listaAbierta()?.campos ?? campos;
   const agregar = (campo) => {
     if (!destino().some((c) => c.nombre === campo.nombre)) destino().push(campo);
   };
@@ -79,6 +137,14 @@ export function detectarCampos(buffer) {
         }
         if (etiqueta.startsWith('#') || etiqueta.startsWith('^')) {
           const nombre = etiqueta.slice(1).trim();
+          // {{#pagos_varios}} pregunta por un numero ya capturado; solo abre
+          // una alternativa de redaccion, no una lista.
+          const base = baseDerivada(nombre);
+          if (base) {
+            agregar({ nombre: base, tipo: 'numero' });
+            abiertos.push({ tipo: 'condicion' });
+            continue;
+          }
           const existente = destino().find((c) => c.nombre === nombre);
           const lista = existente || { nombre, tipo: 'lista', desde: 1, campos: [] };
           if (!existente) destino().push(lista);
@@ -89,11 +155,14 @@ export function detectarCampos(buffer) {
         // se toma desde que numero enumera la lista, para que el formulario
         // rotule cada fila igual que saldra en el documento.
         const numeracion = etiqueta.match(/^(?:indice|ordinal(\d*))$/);
-        if (abiertos.length && numeracion) {
-          abiertos.at(-1).desde = Number(numeracion[1]) || 1;
+        if (listaAbierta() && numeracion) {
+          listaAbierta().desde = Number(numeracion[1]) || 1;
           continue;
         }
-        agregar({ nombre: etiqueta, tipo: 'texto' });
+        // {{pagos_en_letras}} lo escribe la aplicacion: lo que se captura es
+        // el numero del que se deriva.
+        const base = baseDerivada(etiqueta);
+        agregar(base ? { nombre: base, tipo: 'numero' } : { nombre: etiqueta, tipo: 'texto' });
       }
     }
   }
@@ -124,7 +193,7 @@ function numeracion(i) {
 }
 
 function numerar(datos, campos) {
-  const salida = { ...datos };
+  const salida = derivar(datos);
   for (const campo of campos) {
     if (campo.tipo !== 'lista') continue;
     const elementos = Array.isArray(datos[campo.nombre]) ? datos[campo.nombre] : [];
