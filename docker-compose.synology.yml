@@ -1,0 +1,20 @@
+# Para un NAS: descarga la imagen ya construida en lugar de compilarla.
+#
+#   docker compose -f docker-compose.synology.yml up -d
+#
+# En Container Manager: Proyecto -> Crear, apuntando a este archivo.
+services:
+  contratos:
+    image: ghcr.io/jaguilar-onix/contratos:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      # Los machotes viven aqui: incluye esta carpeta en Hyper Backup.
+      - ./data:/app/data
+    environment:
+      LIMITE_MB: 25
+      # En la red de la oficina puedes dejarlas vacias. Llenalas antes de
+      # publicar el NAS hacia internet.
+      ACCESO_USUARIO: ${ACCESO_USUARIO:-}
+      ACCESO_CLAVE: ${ACCESO_CLAVE:-}
+    restart: unless-stopped

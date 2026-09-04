@@ -5,7 +5,7 @@ corre esto. Hay tres caminos probados, de menos a más administración:
 
 | Dónde | Cuesta | Para quién |
 | --- | --- | --- |
-| [Un Synology propio](#en-un-synology) | Nada extra | Uso interno; los datos no salen de la oficina |
+| [Un Synology propio](#en-un-synology) | Nada extra | Uso interno; los datos no salen de la oficina. Requiere Container Manager |
 | [Render](#en-render) | ~7 USD/mes | Publicarlo sin administrar un servidor |
 | [Un VPS](#en-un-vps) | ~6.5 USD/mes | Control total, a cambio de mantenerlo |
 
@@ -50,31 +50,70 @@ donde vivan los machotes.
 Es la opción más barata y la más discreta con los datos: los contratos nunca
 salen de la oficina.
 
-**Requisitos.** El NAS debe poder instalar **Container Manager**, que pide un
-procesador Intel o AMD (series `+`, `xs`, y varios modelos recientes). Los
-equipos con procesador Realtek o Marvell no lo admiten. Conviene 2 GB de RAM o
-más: LibreOffice pide unos cuantos cientos de megabytes mientras convierte.
+### Antes que nada: ¿tu modelo lo admite?
 
-1. En DSM, instala **Container Manager** desde el Centro de paquetes.
-2. Copia el proyecto a una carpeta compartida, por ejemplo `/volume1/docker/contratos`.
-   Puedes clonarlo por SSH o descargar el ZIP del repositorio y descomprimirlo ahí.
-3. Crea el archivo `.env` en esa carpeta a partir de `.env.ejemplo`, con el
-   usuario y la contraseña de acceso.
-4. En Container Manager, **Proyecto → Crear**, apunta a esa carpeta y elige
-   `docker-compose.yml`. La primera construcción tarda: descarga LibreOffice.
-5. Entra desde la red de la oficina a `http://IP-DEL-NAS:3000`.
+Container Manager (el Docker de DSM) no está en todos los equipos. **Ábre el
+Centro de paquetes y busca «Container Manager»**: si aparece, tu NAS puede;
+si no aparece, no hay forma de instalarlo y conviene irse a Render.
 
-**Para usarlo fuera de la oficina**, DSM ya trae lo necesario: en *Panel de
-control → Portal de inicio de sesión → Avanzado → Proxy inverso*, publica un
-subdominio hacia `localhost:3000`, y saca el certificado con Let's Encrypt desde
-*Seguridad → Certificado*. Si prefieres no abrir nada al exterior, la alternativa
-más segura es entrar por la VPN del NAS.
+En los modelos con procesador ARM, como el **DS223**, la disponibilidad ha
+cambiado entre versiones de DSM, así que la comprobación en el propio equipo es
+lo único confiable. Ten DSM actualizado a 7.2 o posterior antes de mirar.
 
-> Al exponerlo fuera de la red local, define `ACCESO_USUARIO` y `ACCESO_CLAVE`
-> en el `.env`. Es lo único que separa los contratos de internet.
+### No construyas la imagen en el NAS
 
-**Respaldo:** la carpeta `data/plantillas` guarda los machotes. Inclúyela en las
-tareas de Hyper Backup que ya tengas.
+Un DS223 tiene 2 GB de RAM que comparte con DSM, y un procesador modesto.
+Instalar LibreOffice ahí tarda horas o se queda sin memoria.
+
+Por eso la imagen se construye en GitHub Actions —para PC y para ARM— y el NAS
+solo la descarga. El archivo `docker-compose.synology.yml` apunta a esa imagen
+ya construida.
+
+La primera vez hay que publicarla y hacerla pública:
+
+1. En GitHub, pestaña **Actions**, ejecuta el flujo **Imagen** (botón
+   *Run workflow*). Tarda: la versión ARM se construye emulada.
+2. Al terminar, entra a **Packages** en el repositorio, abre `contratos` y en
+   *Package settings* cámbialo a **Public**. Así el NAS la descarga sin
+   credenciales.
+
+### Instalar
+
+1. Instala **Container Manager** desde el Centro de paquetes.
+2. Crea la carpeta `/volume1/docker/contratos` y copia ahí
+   `docker-compose.synology.yml`. Es lo único que hace falta: la imagen viene
+   del registro, no del código.
+3. Si vas a publicarlo fuera de la red local, crea junto a él un archivo `.env`:
+
+   ```
+   ACCESO_USUARIO=onix
+   ACCESO_CLAVE=una-contraseña-larga
+   ```
+
+4. En Container Manager: **Proyecto → Crear**, apunta a esa carpeta y elige
+   `docker-compose.synology.yml`.
+5. Entra desde la oficina a `http://IP-DEL-NAS:3000`.
+
+### Usarlo desde fuera
+
+DSM ya trae lo necesario: en *Panel de control → Portal de inicio de sesión →
+Avanzado → Proxy inverso*, publica un subdominio hacia `localhost:3000`, y saca
+el certificado con Let's Encrypt desde *Seguridad → Certificado*. Si prefieres no
+abrir nada al exterior, entra por la VPN del NAS.
+
+> Al exponerlo, define `ACCESO_USUARIO` y `ACCESO_CLAVE`. Es lo único que separa
+> los contratos de internet.
+
+### Rendimiento y respaldo
+
+Con 2 GB de RAM alcanza para generar un contrato a la vez, que es el uso real.
+Espera algunos segundos más por documento que en una computadora de escritorio.
+
+Los machotes viven en `data/plantillas`, junto al archivo de compose. Incluye esa
+carpeta en las tareas de Hyper Backup que ya tengas.
+
+**Actualizar** a una versión nueva: en Container Manager, abre el proyecto,
+*Acción → Compilar* con la opción de descargar la imagen más reciente.
 
 ---
 
