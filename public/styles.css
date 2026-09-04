@@ -131,3 +131,23 @@ code { background: #ececE6; padding: 1px 5px; border-radius: 4px; font-size: 12p
 .estado { margin: 12px 0 0; font-size: 13px; min-height: 20px; }
 .estado.error { color: var(--error); }
 .estado.exito { color: var(--acento); }
+
+.lista {
+  grid-column: 1 / -1;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 12px 14px 14px;
+  margin: 0;
+  background: #fbfbf9;
+}
+.lista legend {
+  font-size: 12px;
+  color: var(--suave);
+  padding: 0 6px;
+  text-transform: capitalize;
+}
+.lista .filas { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+.fila-lista { display: flex; align-items: flex-end; gap: 10px; }
+.fila-lista .orden { font-size: 12px; color: var(--suave); padding-bottom: 10px; min-width: 16px; }
+.fila-lista .campos { flex: 1; }
+.fila-lista .quitar { padding: 8px 10px; font-size: 12px; }

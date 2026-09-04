@@ -32,6 +32,32 @@ Renta mensual de ${{monto_renta}} pesos.
 Inmueble: {{direccion_inmueble}}
 ```
 
+### Partes que se repiten un número variable de veces
+
+Cuando una cláusula puede llevar dos pagos o siete, se marca el bloque que se
+repite entre `{{#nombre}}` y `{{/nombre}}`, cada uno **en su propio párrafo**:
+
+```
+{{#pagos}}
+Un {{ordinal2}} depósito por la cantidad de ${{cifra}} M.N. ({{letra}}/100
+Moneda Nacional), a más tardar el día {{fecha}}.
+{{/pagos}}
+```
+
+La app muestra ese bloque como una tabla de filas: se agregan y quitan las que
+hagan falta, y el documento crece con ellas. Los párrafos que solo contienen la
+etiqueta desaparecen al generar, así que una lista numerada de Word no queda con
+incisos vacíos y se renumera sola.
+
+Dentro del bloque, la app aporta la numeración y no hace falta capturarla:
+
+| Variable | Vale |
+| --- | --- |
+| `{{indice}}` | 1, 2, 3… |
+| `{{ordinal}}` | primer, segundo, tercer… |
+| `{{ordinal2}}` | segundo, tercer, cuarto… (cuando la enumeración ya empezó antes del bloque) |
+| `{{ordinal3}}` | tercer, cuarto, quinto… |
+
 Reglas prácticas:
 
 - Usa nombres sin espacios: `{{nombre_arrendatario}}`, no `{{nombre del arrendatario}}`.
@@ -92,7 +118,7 @@ entre reinicios (en Docker ya está montado como volumen).
 | Campo            | Descripción                                              |
 | ---------------- | -------------------------------------------------------- |
 | `plantillaId`    | ID del juego de machotes.                                |
-| `datos`          | JSON `{ "variable": "valor" }`.                          |
+| `datos`          | JSON `{ "variable": "valor" }`; los bloques repetibles van como arreglo de objetos. |
 | `anexos`         | Archivos JPG, PNG o PDF (hasta 25).                      |
 | `titulosAnexos`  | JSON con el título de cada anexo, en el mismo orden.     |
 | `folio`          | Folio propio; si se omite se genera `CTO-AAAAMMDD-XXXX`. |

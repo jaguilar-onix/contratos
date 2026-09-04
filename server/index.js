@@ -67,7 +67,9 @@ app.post(
       return res.status(400).json({ error: 'Los datos del formulario no son validos.' });
     }
 
-    const faltantes = plantilla.campos.filter((c) => !String(datos[c] ?? '').trim());
+    const faltantes = plantillas
+      .camposDeTexto(plantilla.campos)
+      .filter((c) => !String(datos[c] ?? '').trim());
     if (faltantes.length && req.body.permitirVacios !== 'true') {
       return res.status(400).json({ error: 'Faltan datos por capturar.', faltantes });
     }
@@ -82,12 +84,20 @@ app.post(
       separador: req.body.separadores !== 'false',
     }));
 
-    const folio = (req.body.folio || '').trim() || folioNuevo();
+    // El folio lo escribe quien genera el contrato, y de ahi pasa a una
+    // cabecera HTTP, al nombre del archivo y al pie de cada pagina.
+    const folio =
+      (req.body.folio || '')
+        .replace(/[^\w.\-/ ]+/g, ' ')
+        .trim()
+        .slice(0, 80) || folioNuevo();
     // En serie y no en paralelo: cada conversion levanta su propio LibreOffice,
     // y varios a la vez en un juego de documentos no compensa la memoria.
     const documentos = [];
     for (const buffer of plantilla.buffers) {
-      documentos.push(await docxAPdf(plantillas.rellenar(buffer, datos)));
+      documentos.push(
+        await docxAPdf(plantillas.rellenar(buffer, datos, plantilla.campos))
+      );
     }
     const pdf = await armarExpediente({
       documentos,
@@ -98,7 +108,7 @@ app.post(
         : 'anexos',
     });
 
-    const nombre = `${folio}.pdf`;
+    const nombre = `${folio.replaceAll('/', '_')}.pdf`;
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="${nombre}"`,

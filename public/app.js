@@ -63,17 +63,97 @@ function usarPlantillaSeleccionada() {
   if (!plantillaActual) return;
 
   for (const campo of plantillaActual.campos) {
-    const label = document.createElement('label');
-    label.className = 'campo';
-    label.innerHTML = `<span>${etiquetar(campo)}</span>`;
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.name = campo;
-    input.autocomplete = 'off';
-    input.addEventListener('input', () => input.classList.remove('faltante'));
-    label.append(input);
-    contenedorCampos.append(label);
+    contenedorCampos.append(
+      campo.tipo === 'lista' ? construirLista(campo) : construirCampo(campo.nombre)
+    );
   }
+}
+
+function construirCampo(nombre, valor = '') {
+  const label = document.createElement('label');
+  label.className = 'campo';
+  label.innerHTML = `<span>${etiquetar(nombre)}</span>`;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.name = nombre;
+  input.value = valor;
+  input.autocomplete = 'off';
+  input.addEventListener('input', () => input.classList.remove('faltante'));
+  label.append(input);
+  return label;
+}
+
+/**
+ * Un bloque repetible: tantas filas como haga falta. El machote las numera
+ * solo, asi que agregar o quitar una no obliga a renumerar nada a mano.
+ */
+function construirLista(campo) {
+  const bloque = document.createElement('fieldset');
+  bloque.className = 'lista';
+  bloque.dataset.lista = campo.nombre;
+  bloque.innerHTML = `<legend>${etiquetar(campo.nombre)}</legend>`;
+
+  const filas = document.createElement('div');
+  filas.className = 'filas';
+
+  const renumerar = () => {
+    [...filas.children].forEach((fila, i) => {
+      fila.querySelector('.orden').textContent = `${i + 1}.`;
+      fila.querySelector('.quitar').disabled = filas.children.length === 1;
+    });
+  };
+
+  const agregarFila = () => {
+    const fila = document.createElement('div');
+    fila.className = 'fila-lista';
+    fila.innerHTML = '<span class="orden"></span>';
+    const campos = document.createElement('div');
+    campos.className = 'campos';
+    for (const sub of campo.campos) campos.append(construirCampo(sub.nombre));
+    const quitar = document.createElement('button');
+    quitar.type = 'button';
+    quitar.className = 'quitar';
+    quitar.textContent = 'Quitar';
+    quitar.addEventListener('click', () => {
+      fila.remove();
+      renumerar();
+    });
+    fila.append(campos, quitar);
+    filas.append(fila);
+    renumerar();
+  };
+
+  const agregar = document.createElement('button');
+  agregar.type = 'button';
+  agregar.className = 'secundario';
+  agregar.textContent = `Agregar ${etiquetar(campo.nombre).toLowerCase()}`;
+  agregar.addEventListener('click', agregarFila);
+
+  bloque.append(filas, agregar);
+  agregarFila();
+  return bloque;
+}
+
+/** Lee el formulario como el JSON que espera la API. */
+function leerDatos() {
+  const datos = {};
+  for (const campo of plantillaActual.campos) {
+    if (campo.tipo !== 'lista') {
+      datos[campo.nombre] = contenedorCampos
+        .querySelector(`.campo > [name="${CSS.escape(campo.nombre)}"]`)
+        ?.value.trim() ?? '';
+      continue;
+    }
+    const bloque = contenedorCampos.querySelector(
+      `[data-lista="${CSS.escape(campo.nombre)}"]`
+    );
+    datos[campo.nombre] = [...bloque.querySelectorAll('.fila-lista')].map((fila) =>
+      Object.fromEntries(
+        [...fila.querySelectorAll('input')].map((i) => [i.name, i.value.trim()])
+      )
+    );
+  }
+  return datos;
 }
 
 selectPlantilla.addEventListener('change', usarPlantillaSeleccionada);
@@ -153,10 +233,7 @@ listaAnexos.addEventListener('drop', (ev) => {
 $('#btn-generar').addEventListener('click', async () => {
   if (!plantillaActual) return;
   const boton = $('#btn-generar');
-  const datos = {};
-  for (const input of contenedorCampos.querySelectorAll('input')) {
-    datos[input.name] = input.value.trim();
-  }
+  const datos = leerDatos();
 
   const cuerpo = new FormData();
   cuerpo.append('plantillaId', plantillaActual.id);
@@ -174,7 +251,9 @@ $('#btn-generar').addEventListener('click', async () => {
     if (!res.ok) {
       const error = await res.json().catch(() => ({}));
       for (const campo of error.faltantes || []) {
-        contenedorCampos.querySelector(`[name="${CSS.escape(campo)}"]`)?.classList.add('faltante');
+        contenedorCampos
+          .querySelector(`.campo > [name="${CSS.escape(campo)}"]`)
+          ?.classList.add('faltante');
       }
       throw new Error(error.error || 'No se pudo generar el contrato.');
     }

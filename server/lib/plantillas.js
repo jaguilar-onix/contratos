@@ -44,28 +44,94 @@ function textoPorParrafo(xml) {
   );
 }
 
-/** Nombres de variable en orden de aparicion, sin repetir. */
+const ORDINALES = [
+  'primer', 'segundo', 'tercer', 'cuarto', 'quinto', 'sexto', 'séptimo',
+  'octavo', 'noveno', 'décimo', 'décimo primer', 'décimo segundo',
+];
+
+/**
+ * Campos en orden de aparicion, sin repetir. Un bloque {{#pagos}}…{{/pagos}}
+ * se devuelve como un campo de tipo lista con sus propios campos dentro: es la
+ * forma de capturar algo que se repite un numero variable de veces, como los
+ * depositos de un contrato.
+ */
 export function detectarCampos(buffer) {
   const zip = new PizZip(buffer);
   const partes = Object.keys(zip.files).filter((f) =>
     /^word\/(document|header\d*|footer\d*)\.xml$/.test(f)
   );
+
   const campos = [];
+  const abiertos = [];
+  const destino = () => (abiertos.length ? abiertos.at(-1).campos : campos);
+  const agregar = (campo) => {
+    if (!destino().some((c) => c.nombre === campo.nombre)) destino().push(campo);
+  };
+
   for (const parte of partes) {
     for (const parrafo of textoPorParrafo(zip.file(parte).asText())) {
       for (const m of parrafo.matchAll(/\{\{\s*([^{}]+?)\s*\}\}/g)) {
-        const nombre = m[1].trim();
-        // Las etiquetas de seccion/bucle de docxtemplater no son campos de captura.
-        if (/^[#/^]/.test(nombre)) continue;
-        if (!campos.includes(nombre)) campos.push(nombre);
+        const etiqueta = m[1].trim();
+
+        if (etiqueta.startsWith('/')) {
+          abiertos.pop();
+          continue;
+        }
+        if (etiqueta.startsWith('#') || etiqueta.startsWith('^')) {
+          const nombre = etiqueta.slice(1).trim();
+          const existente = destino().find((c) => c.nombre === nombre);
+          const lista = existente || { nombre, tipo: 'lista', campos: [] };
+          if (!existente) destino().push(lista);
+          abiertos.push(lista);
+          continue;
+        }
+        // La numeracion la aporta la aplicacion; no se captura.
+        if (abiertos.length && /^(indice|ordinal\d*)$/.test(etiqueta)) continue;
+        agregar({ nombre: etiqueta, tipo: 'texto' });
       }
     }
   }
   return campos;
 }
 
+/** Nombres de los campos de texto de un nivel, para validar lo capturado. */
+export function camposDeTexto(campos) {
+  return campos.filter((c) => c.tipo === 'texto').map((c) => c.nombre);
+}
+
+/**
+ * Numera los elementos de cada lista. Un machote puede escribir
+ * "Un {{ordinal}} deposito" y la numeracion sigue siendo correcta al agregar o
+ * quitar filas, sin que nadie teclee "tercero".
+ *
+ * Cuando la lista continua una enumeracion que ya empezo fuera del bloque
+ * repetible, {{ordinal2}} arranca en "segundo", {{ordinal3}} en "tercer", etc.
+ */
+function numeracion(i) {
+  const numeros = { indice: i + 1 };
+  for (let desde = 1; desde <= ORDINALES.length - i; desde++) {
+    const palabra = ORDINALES[i + desde - 1];
+    if (!palabra) break;
+    numeros[desde === 1 ? 'ordinal' : `ordinal${desde}`] = palabra;
+  }
+  return numeros;
+}
+
+function numerar(datos, campos) {
+  const salida = { ...datos };
+  for (const campo of campos) {
+    if (campo.tipo !== 'lista') continue;
+    const elementos = Array.isArray(datos[campo.nombre]) ? datos[campo.nombre] : [];
+    salida[campo.nombre] = elementos.map((elemento, i) => ({
+      ...numeracion(i),
+      ...numerar(elemento, campo.campos),
+    }));
+  }
+  return salida;
+}
+
 /** Sustituye las variables y devuelve el .docx resultante. */
-export function rellenar(buffer, datos) {
+export function rellenar(buffer, datos, campos = []) {
   const doc = new Docxtemplater(new PizZip(buffer), {
     delimiters: DELIMITERS,
     paragraphLoop: true,
@@ -73,7 +139,7 @@ export function rellenar(buffer, datos) {
     // Un campo sin capturar se imprime vacio en vez de romper la generacion.
     nullGetter: () => '',
   });
-  doc.render(datos);
+  doc.render(numerar(datos, campos));
   return doc.toBuffer();
 }
 
@@ -95,7 +161,17 @@ export async function guardar(archivos) {
     await fs.writeFile(path.join(DIR, `${id}-${i}.docx`), buffer);
     documentos.push({ nombre: sinExtension(archivo.originalname) });
     for (const campo of detectarCampos(buffer)) {
-      if (!campos.includes(campo)) campos.push(campo);
+      const existente = campos.find((c) => c.nombre === campo.nombre);
+      if (!existente) {
+        campos.push(campo);
+      } else if (existente.tipo === 'lista' && campo.tipo === 'lista') {
+        // La misma lista en dos documentos: se unen sus campos.
+        for (const sub of campo.campos) {
+          if (!existente.campos.some((c) => c.nombre === sub.nombre)) {
+            existente.campos.push(sub);
+          }
+        }
+      }
     }
   }
 
