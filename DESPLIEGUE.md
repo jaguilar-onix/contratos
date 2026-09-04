@@ -117,15 +117,65 @@ contraseña:
       ACCESO_CLAVE: una-contraseña-larga
 ```
 
+### Ponerle un nombre en la red de la oficina
+
+Para entrar como `contratos.onixliving.mx` en lugar de `http://192.168.1.50:3000`,
+sin abrir nada a internet.
+
+**1. Fija la dirección del NAS.** Si su IP cambia, el nombre deja de resolver. En
+el router, reserva la IP por DHCP para el NAS, o ponsela fija en *Panel de
+control → Red → Interfaz de red*.
+
+**2. Haz que el nombre resuelva a esa IP.** Dos caminos, de menos a más trabajo:
+
+- **Un registro A público que apunte a la IP local.** En el DNS de tu dominio,
+  crea `contratos.onixliving.mx` apuntando a `192.168.1.50` (la IP del NAS). Se
+  ve raro publicar una IP privada, pero funciona: dentro de la oficina resuelve
+  y conecta; fuera resuelve y no lleva a ningún lado. No hay que tocar el router
+  ni exponer nada.
+
+  Algunos routers bloquean esto (lo llaman *protección de reasignación de DNS* o
+  *DNS rebinding*). Si el nombre no resuelve desde una computadora de la
+  oficina, es por eso: usa el siguiente camino.
+
+- **DNS local en el router.** Casi todos permiten agregar un nombre que apunte a
+  una IP de la red. Busca *DNS local*, *Host estático* o *DNS masquerading*.
+
+**3. Crea el proxy inverso en DSM.** *Panel de control → Portal de inicio de
+sesión → Avanzado → Proxy inverso → Crear*:
+
+| | Origen | Destino |
+| --- | --- | --- |
+| Protocolo | HTTP | HTTP |
+| Nombre de host | `contratos.onixliving.mx` | `localhost` |
+| Puerto | `80` | `3000` |
+
+Guarda y entra a `http://contratos.onixliving.mx` desde la oficina.
+
+> Container Manager también ofrece un *Asistente de creación de portales* al
+> abrir el proyecto, que hace lo mismo con el servicio ya seleccionado.
+
+**Sobre el candado de HTTPS.** El certificado gratuito de Let's Encrypt que trae
+DSM exige que el dominio sea alcanzable desde internet por el puerto 80, así que
+en una instalación solo-local no se puede sacar. Las opciones son dejarlo en
+HTTP —dentro de la red de la oficina es lo habitual— o generar un certificado
+propio en *Panel de control → Seguridad → Certificado*, que cifra pero hace que
+el navegador avise que no lo reconoce.
+
 ### Usarlo desde fuera
 
-DSM ya trae lo necesario: en *Panel de control → Portal de inicio de sesión →
-Avanzado → Proxy inverso*, publica un subdominio hacia `localhost:3000`, y saca
-el certificado con Let's Encrypt desde *Seguridad → Certificado*. Si prefieres no
-abrir nada al exterior, entra por la VPN del NAS.
+Si más adelante quieres entrar sin estar en la oficina, hay dos formas:
 
-> Al exponerlo, define `ACCESO_USUARIO` y `ACCESO_CLAVE`. Es lo único que separa
-> los contratos de internet.
+- **Por VPN.** El paquete *VPN Server* de DSM; te conectas y entras al mismo
+  nombre local. Nada queda expuesto.
+- **Publicándolo a internet.** Registro A hacia tu IP pública, puertos 80 y 443
+  del router hacia el NAS, y el certificado de Let's Encrypt desde
+  *Seguridad → Certificado*.
+
+> Antes de publicarlo a internet, ponle contraseña: agrega `ACCESO_USUARIO` y
+> `ACCESO_CLAVE` al proyecto en Container Manager y reconstrúyelo. Sin eso,
+> cualquiera que dé con la dirección genera contratos y lee los datos de los
+> compradores.
 
 ### Rendimiento y respaldo
 
