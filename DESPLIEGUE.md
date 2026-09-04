@@ -66,33 +66,52 @@ Un DS223 tiene 2 GB de RAM que comparte con DSM, y un procesador modesto.
 Instalar LibreOffice ahí tarda horas o se queda sin memoria.
 
 Por eso la imagen se construye en GitHub Actions —para PC y para ARM— y el NAS
-solo la descarga. El archivo `docker-compose.synology.yml` apunta a esa imagen
-ya construida.
+solo la descarga desde `ghcr.io/jaguilar-onix/contratos:latest`. Ya está
+publicada para las dos arquitecturas y es de acceso público, así que el NAS la
+baja sin credenciales.
 
-La primera vez hay que publicarla y hacerla pública:
-
-1. En GitHub, pestaña **Actions**, ejecuta el flujo **Imagen** (botón
-   *Run workflow*). Tarda: la versión ARM se construye emulada.
-2. Al terminar, entra a **Packages** en el repositorio, abre `contratos` y en
-   *Package settings* cámbialo a **Public**. Así el NAS la descarga sin
-   credenciales.
+Cada vez que se sube un cambio al repositorio, el flujo la reconstruye.
 
 ### Instalar
 
 1. Instala **Container Manager** desde el Centro de paquetes.
-2. Crea la carpeta `/volume1/docker/contratos` y copia ahí
-   `docker-compose.synology.yml`. Es lo único que hace falta: la imagen viene
-   del registro, no del código.
-3. Si vas a publicarlo fuera de la red local, crea junto a él un archivo `.env`:
-
-   ```
-   ACCESO_USUARIO=onix
-   ACCESO_CLAVE=una-contraseña-larga
-   ```
-
-4. En Container Manager: **Proyecto → Crear**, apunta a esa carpeta y elige
-   `docker-compose.synology.yml`.
+2. Crea una carpeta para el proyecto, por ejemplo `/volume1/docker/contratos`.
+3. En Container Manager: **Proyecto → Crear**.
+   - *Nombre del proyecto:* `contratos`
+   - *Ruta:* la carpeta que creaste
+   - Cuando avise que no hay un `docker-compose.yml`, elige **crear uno** y
+     **pega** el contenido que aparece más abajo. No hace falta copiar ningún
+     archivo ni clonar el repositorio: la imagen viene del registro.
+4. Siguiente hasta terminar. La primera vez tarda unos minutos: descarga la
+   imagen con LibreOffice dentro.
 5. Entra desde la oficina a `http://IP-DEL-NAS:3000`.
+
+Contenido que se pega en el paso 3:
+
+```yaml
+services:
+  contratos:
+    image: ghcr.io/jaguilar-onix/contratos:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      LIMITE_MB: 25
+    restart: unless-stopped
+```
+
+La carpeta `data` se crea sola dentro del proyecto la primera vez que arranca.
+
+Si vas a publicarlo fuera de la red local, agrega ahí mismo el usuario y la
+contraseña:
+
+```yaml
+    environment:
+      LIMITE_MB: 25
+      ACCESO_USUARIO: onix
+      ACCESO_CLAVE: una-contraseña-larga
+```
 
 ### Usarlo desde fuera
 
