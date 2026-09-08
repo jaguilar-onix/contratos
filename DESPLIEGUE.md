@@ -96,27 +96,26 @@ Contenido que se pega en el paso 3:
 services:
   contratos:
     image: ghcr.io/jaguilar-onix/contratos:latest
+    # Descarga la version mas reciente en cada arranque, para que actualizar
+    # sea solo detener e iniciar.
+    pull_policy: always
     ports:
       - "3000:3000"
     volumes:
       - ./data:/app/data
     environment:
       LIMITE_MB: 25
+      # Sin estas dos no se crea ningun usuario y nadie podra entrar.
+      ACCESO_USUARIO: onix
+      ACCESO_CLAVE: una-contraseña-larga
     restart: unless-stopped
 ```
 
-En esa carpeta `data` quedan los machotes. Es la que hay que respaldar.
+En la carpeta `data` quedan los machotes y los usuarios. Es la que hay que
+respaldar.
 
-Agrega ahí mismo el primer usuario, o nadie podrá entrar:
-
-```yaml
-    environment:
-      LIMITE_MB: 25
-      ACCESO_USUARIO: onix
-      ACCESO_CLAVE: una-contraseña-larga
-```
-
-Los demás usuarios se dan de alta desde la aplicación.
+Los demás usuarios se dan de alta desde la aplicación, con el botón
+**Usuarios**; esas dos variables solo crean el primero.
 
 ### Ponerle un nombre en la red de la oficina
 
@@ -200,8 +199,18 @@ Espera algunos segundos más por documento que en una computadora de escritorio.
 Los machotes viven en `data/plantillas`, junto al archivo de compose. Incluye esa
 carpeta en las tareas de Hyper Backup que ya tengas.
 
-**Actualizar** a una versión nueva: en Container Manager, abre el proyecto,
-*Acción → Compilar* con la opción de descargar la imagen más reciente.
+### Actualizar a una versión nueva
+
+Con `pull_policy: always` en el compose, basta **detener e iniciar** el proyecto:
+al arrancar descarga la imagen más reciente.
+
+Si esa línea no está o tu versión de Container Manager no la admite, hazlo a
+mano: detén el proyecto, ve a la pestaña **Imagen**, elimina
+`ghcr.io/jaguilar-onix/contratos:latest` y vuelve a iniciar el proyecto. Al no
+encontrar la imagen, la descarga de nuevo.
+
+Los machotes no se tocan en ninguno de los dos casos: viven en `data/`, fuera
+del contenedor.
 
 ---
 

@@ -6,6 +6,9 @@
 services:
   contratos:
     image: ghcr.io/jaguilar-onix/contratos:latest
+    # Descarga la version mas reciente en cada arranque: actualizar es solo
+    # detener e iniciar el proyecto.
+    pull_policy: always
     ports:
       - "3000:3000"
     volumes:
@@ -15,8 +18,8 @@ services:
       - ./data:/app/data
     environment:
       LIMITE_MB: 25
-      # En la red de la oficina puedes dejarlas vacias. Llenalas antes de
-      # publicar el NAS hacia internet.
+      # Crean el primer usuario. Sin ellas no hay ninguno y nadie podra
+      # entrar; los demas se dan de alta desde la aplicacion.
       ACCESO_USUARIO: ${ACCESO_USUARIO:-}
       ACCESO_CLAVE: ${ACCESO_CLAVE:-}
     restart: unless-stopped
