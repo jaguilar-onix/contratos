@@ -11,9 +11,24 @@ const KB = 1024;
 const pesoLegible = (b) =>
   b < KB * KB ? `${Math.round(b / KB)} KB` : `${(b / (KB * KB)).toFixed(1)} MB`;
 
+// Los nombres de variable se escriben sin acentos, pero la etiqueta que ve
+// quien captura sí debe llevarlos: "anio_firma" se lee "Año firma".
+const ACENTOS = {
+  dia: 'día', dias: 'días', anio: 'año', anios: 'años', ano: 'año',
+  numero: 'número', telefono: 'teléfono', direccion: 'dirección',
+  ubicacion: 'ubicación', descripcion: 'descripción', identificacion: 'identificación',
+  regimen: 'régimen', metodo: 'método', credito: 'crédito', deposito: 'depósito',
+  depositos: 'depósitos', ultimo: 'último', proxima: 'próxima', proximo: 'próximo',
+};
+
 // Convierte nombre_del_arrendatario en "Nombre del arrendatario".
 const etiquetar = (campo) =>
-  campo.replace(/[_-]+/g, ' ').replace(/^./, (c) => c.toUpperCase());
+  campo
+    .replace(/[_-]+/g, ' ')
+    .split(' ')
+    .map((palabra) => ACENTOS[palabra.toLowerCase()] ?? palabra)
+    .join(' ')
+    .replace(/^./, (c) => c.toUpperCase());
 
 // "depositos" -> "Deposito", para rotular cada fila de un bloque repetible.
 const singular = (nombre) => etiquetar(nombre).replace(/s$/i, '');
@@ -267,7 +282,7 @@ $('#btn-generar').addEventListener('click', async () => {
       }
       throw new Error(error.error || 'No se pudo generar el contrato.');
     }
-    const folio = res.headers.get('X-Folio') || 'contrato';
+    const folio = decodeURIComponent(res.headers.get('X-Folio') || 'contrato');
     const url = URL.createObjectURL(await res.blob());
     Object.assign(document.createElement('a'), { href: url, download: `${folio}.pdf` }).click();
     URL.revokeObjectURL(url);

@@ -2,38 +2,95 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Entrar · Generador de contratos</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f6f4f'/%3E%3Cpath d='M9 8h11l4 4v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z' fill='%23fff'/%3E%3Cpath d='M12 16h8M12 20h5' stroke='%231f6f4f' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1D3444" />
+  <title>Entrar · Onix Living</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231D3444'/%3E%3Cpath d='M9 8h11l4 4v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z' fill='%23F4F0EB'/%3E%3Cpath d='M12 16h8M12 20h5' stroke='%231D3444' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="centrado">
-  <form class="tarjeta-entrada" id="formulario">
-    <h1>Generador de contratos</h1>
-    <p class="ayuda">Entra con tu usuario para continuar.</p>
+<body class="entrada">
+  <!-- Panel de marca. En movil se reduce a una banda con el logo. -->
+  <section class="marca-panel">
+    <svg class="marca" xmlns="http://www.w3.org/2000/svg" viewBox="638.00 482.21 644.00 115.57" fill="currentColor" role="img" aria-label="Onix Living">
+  <path fill-rule="nonzero" fill-opacity="1" d="M 747.5 576.660156 L 747.5 527.6875 C 747.5 527.6875 747.382812 517.847656 741.546875 511.984375 C 741.546875 511.984375 750.734375 520.917969 750.734375 530.371094 L 750.734375 573.097656 Z M 747.5 576.660156 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 645.933594 500.101562 L 718.902344 500.101562 C 718.902344 500.101562 729.804688 500.085938 735.582031 505.949219 C 735.582031 505.949219 727.230469 496.859375 717.914062 496.859375 L 649.4375 496.859375 Z M 645.933594 500.101562 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 652.046875 493.925781 L 714.71875 493.925781 C 714.71875 493.925781 725.058594 493.914062 730.542969 499.773438 C 730.542969 499.773438 722.617188 490.683594 713.78125 490.683594 L 655.609375 490.683594 Z M 652.046875 493.925781 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 658.136719 487.457031 L 709.453125 487.457031 C 709.453125 487.457031 719.804688 488.027344 724.933594 493.890625 C 724.933594 493.890625 716.84375 484.214844 708.574219 484.214844 L 661.660156 484.214844 Z M 658.136719 487.457031 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 744.375 524.496094 C 745.371094 533.320312 744.382812 579.480469 744.382812 579.480469 L 741.140625 583.101562 L 741.140625 526.449219 C 741.140625 526.449219 740.621094 514.667969 738.613281 511.417969 C 736.609375 508.171875 729.039062 506.085938 723.152344 506.085938 L 640 506.085938 L 643.535156 502.84375 L 722.15625 502.84375 C 722.15625 502.84375 731.992188 502.960938 737.996094 510.285156 C 744.003906 517.605469 744.011719 521.265625 744.375 524.496094 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 730.871094 507.019531 C 730.871094 507.019531 731.734375 511.808594 731.734375 518.371094 L 731.734375 592.179688 L 728.5 595.78125 C 728.5 595.78125 728.875 511.4375 728.050781 506.398438 C 728.050781 506.398438 729.804688 506.539062 730.871094 507.019531 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 735.683594 508.597656 C 735.683594 508.597656 738.589844 512.28125 738.292969 525.84375 C 738.011719 538.90625 738.292969 586.328125 738.292969 586.328125 L 735.101562 589.710938 L 735.058594 519.917969 C 735.058594 519.917969 734.78125 510.019531 733.378906 507.199219 C 733.378906 507.199219 734.6875 508.183594 735.683594 508.597656 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 706.296875 557.507812 L 679.796875 557.507812 C 679.796875 557.507812 669.746094 556.746094 663.894531 550.75 C 663.894531 550.75 671.367188 560.835938 680.796875 560.835938 L 706.308594 560.835938 Z M 706.296875 557.507812 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 706.308594 563.824219 L 684.035156 563.824219 C 684.035156 563.824219 673.5625 563.839844 668.015625 557.84375 C 668.015625 557.84375 676.035156 567.152344 684.984375 567.152344 L 706.308594 567.152344 Z M 706.308594 563.824219 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 706.300781 570.117188 L 687.800781 570.117188 C 687.800781 570.117188 677.320312 570.171875 672.128906 564.175781 C 672.128906 564.175781 680.316406 573.445312 688.6875 573.445312 L 706.308594 573.445312 Z M 706.300781 570.117188 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 676.582031 551.664062 C 676.582031 551.664062 675.707031 545.527344 675.707031 538.816406 L 675.707031 528.683594 L 678.980469 528.738281 C 678.980469 528.738281 678.601562 547.148438 679.4375 552.300781 C 679.4375 552.300781 677.660156 552.160156 676.582031 551.664062 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 672.339844 538.785156 C 672.339844 538.785156 672.625 549.78125 674.039062 552.503906 C 674.039062 552.503906 672.71875 551.554688 671.707031 551.152344 C 671.707031 551.152344 668.765625 546.152344 669.066406 533.066406 L 669.066406 528.710938 L 672.300781 528.710938 Z M 672.339844 538.785156 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 682.367188 551.664062 C 682.367188 551.664062 681.492188 546.765625 681.492188 540.054688 L 681.492188 528.691406 L 684.765625 528.679688 C 684.765625 528.679688 684.386719 547.148438 685.222656 552.300781 C 685.222656 552.300781 683.445312 552.160156 682.367188 551.664062 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 706.304688 551.226562 L 706.324219 554.746094 L 682.589844 554.746094 C 682.589844 554.746094 676.394531 555.066406 670.054688 550.75 C 664.609375 547.042969 662.566406 539.855469 662.574219 535.890625 C 662.578125 534.148438 662.574219 528.742188 662.574219 528.742188 L 665.828125 528.710938 C 665.828125 528.710938 664.609375 547.261719 670.109375 549.632812 C 675.492188 551.949219 679.773438 551.300781 685.222656 551.421875 C 690.671875 551.539062 706.304688 551.226562 706.304688 551.226562 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 789.539062 533.070312 C 789.539062 543.554688 796.746094 550.722656 806.652344 550.722656 C 816.597656 550.722656 823.765625 543.554688 823.765625 533.070312 C 823.765625 522.585938 816.597656 515.417969 806.652344 515.417969 C 796.746094 515.417969 789.539062 522.585938 789.539062 533.070312 M 835.019531 533.070312 C 835.019531 549.179688 823.265625 561.050781 806.652344 561.050781 C 790.039062 561.050781 778.324219 549.179688 778.324219 533.070312 C 778.324219 516.957031 790.039062 505.085938 806.652344 505.085938 C 823.265625 505.085938 835.019531 516.957031 835.019531 533.070312 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 893.898438 560.921875 L 883.449219 560.921875 L 858.292969 527.792969 C 857.273438 526.449219 855.128906 527.167969 855.128906 528.855469 L 855.09375 560.921875 L 843.96875 560.921875 L 843.96875 505.085938 L 854.375 505.085938 L 879.566406 538.214844 C 880.589844 539.554688 882.734375 538.835938 882.734375 537.148438 L 882.734375 505.085938 L 893.898438 505.085938 Z M 893.898438 560.921875 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 923.246094 560.921875 L 912.117188 560.921875 L 912.117188 505.085938 L 923.246094 505.085938 Z M 923.246094 560.921875 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 968.828125 537.179688 L 984.820312 560.921875 L 971.78125 560.921875 L 958.9375 541.019531 L 946.054688 560.921875 L 933.214844 560.921875 L 949.179688 537.175781 C 951.050781 534.386719 951.050781 530.746094 949.171875 527.960938 L 933.734375 505.085938 L 946.8125 505.085938 L 959.097656 524.230469 L 971.460938 505.085938 L 984.300781 505.085938 L 968.835938 527.953125 C 966.953125 530.738281 966.949219 534.390625 968.828125 537.179688 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 1052.003906 560.398438 L 1016.5 560.398438 C 1014.144531 560.398438 1012.230469 558.484375 1012.230469 556.125 L 1012.230469 505.753906 L 1023.121094 505.753906 L 1023.121094 545.9375 C 1023.121094 548.296875 1025.03125 550.210938 1027.390625 550.210938 L 1052.003906 550.210938 Z M 1052.003906 560.398438 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 1071.515625 560.421875 L 1060.617188 560.421875 L 1060.617188 505.753906 L 1071.515625 505.753906 Z M 1071.515625 560.421875 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 1112.199219 560.421875 L 1098.960938 560.421875 L 1078.421875 505.753906 L 1090.019531 505.753906 L 1103.574219 543.507812 C 1104.28125 545.488281 1107.078125 545.488281 1107.792969 543.511719 L 1121.414062 505.753906 L 1132.738281 505.753906 Z M 1112.199219 560.421875 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 1155.621094 560.421875 L 1144.726562 560.421875 L 1144.726562 505.753906 L 1155.621094 505.753906 Z M 1155.621094 560.421875 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 1218.730469 560.421875 L 1208.5 560.421875 L 1182.773438 526.546875 C 1182.128906 525.695312 1180.773438 526.152344 1180.769531 527.21875 L 1180.734375 560.421875 L 1169.839844 560.421875 L 1169.839844 505.753906 L 1180.03125 505.753906 L 1205.792969 539.632812 C 1206.4375 540.480469 1207.796875 540.023438 1207.796875 538.957031 L 1207.796875 505.753906 L 1218.730469 505.753906 Z M 1218.730469 560.421875 "/>
+  <path fill-rule="nonzero" fill-opacity="1" d="M 1274.480469 513.761719 L 1266.878906 521.210938 C 1263.890625 517.769531 1259.503906 515.652344 1254.09375 515.652344 C 1244.414062 515.652344 1237.378906 522.761719 1237.378906 533.089844 C 1237.378906 543.90625 1244.753906 550.675781 1253.90625 550.675781 C 1262.527344 550.675781 1267.558594 546.515625 1268.957031 538.988281 L 1255.492188 538.988281 L 1255.492188 530.175781 L 1279.847656 530.175781 C 1279.964844 531.199219 1280 532.179688 1280 533.164062 C 1280 549.199219 1269.144531 560.507812 1254.132812 560.507812 C 1239.457031 560.507812 1226.449219 550.183594 1226.449219 533.089844 C 1226.449219 517.089844 1238.132812 505.632812 1254.394531 505.632812 C 1262.792969 505.632812 1269.789062 508.65625 1274.480469 513.761719 "/>
+</svg>
+    <div class="marca-contenido">
+      <p class="lema">Generador de contratos</p>
+      <p class="descripcion">
+        Llena el machote, adjunta la documentación y descarga el expediente
+        completo en un solo PDF.
+      </p>
+    </div>
+    <p class="pie-marca">onixliving.mx</p>
+  </section>
 
-    <label class="campo">
-      <span>Usuario</span>
-      <input type="text" name="usuario" autocomplete="username" autofocus required />
-    </label>
+  <!-- Formulario -->
+  <main class="acceso">
+    <form id="formulario" novalidate>
+      <h1>Bienvenido</h1>
+      <p class="ayuda">Entra con tu usuario para continuar.</p>
 
-    <label class="campo">
-      <span>Contraseña</span>
-      <input type="password" name="clave" autocomplete="current-password" required />
-    </label>
+      <label class="campo">
+        <span>Usuario</span>
+        <input type="text" name="usuario" autocomplete="username"
+               autocapitalize="none" spellcheck="false" autofocus required />
+      </label>
 
-    <button type="submit" class="principal">Entrar</button>
-    <p id="estado" class="estado" role="alert"></p>
-  </form>
+      <label class="campo">
+        <span>Contraseña</span>
+        <span class="con-boton">
+          <input type="password" name="clave" autocomplete="current-password" required />
+          <button type="button" id="ver-clave" aria-label="Mostrar la contraseña">Ver</button>
+        </span>
+      </label>
+
+      <button type="submit" class="principal">Entrar</button>
+      <p id="estado" class="estado" role="alert" aria-live="polite"></p>
+    </form>
+  </main>
 
   <script>
     const formulario = document.getElementById('formulario');
     const estado = document.getElementById('estado');
+    const verClave = document.getElementById('ver-clave');
+
+    verClave.addEventListener('click', () => {
+      const oculta = formulario.clave.type === 'password';
+      formulario.clave.type = oculta ? 'text' : 'password';
+      verClave.textContent = oculta ? 'Ocultar' : 'Ver';
+      verClave.setAttribute('aria-label',
+        oculta ? 'Ocultar la contraseña' : 'Mostrar la contraseña');
+      formulario.clave.focus();
+    });
 
     formulario.addEventListener('submit', async (ev) => {
       ev.preventDefault();
-      const boton = formulario.querySelector('button');
+      const boton = formulario.querySelector('button[type=submit]');
       boton.disabled = true;
+      boton.textContent = 'Entrando…';
       estado.textContent = '';
       estado.className = 'estado';
 
@@ -41,7 +98,7 @@
         const datos = Object.fromEntries(new FormData(formulario));
         const res = await fetch('/api/entrar', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json; charset=utf-8' },
           body: JSON.stringify(datos),
         });
         if (!res.ok) {
@@ -56,8 +113,8 @@
         estado.className = 'estado error';
         formulario.clave.value = '';
         formulario.clave.focus();
-      } finally {
         boton.disabled = false;
+        boton.textContent = 'Entrar';
       }
     });
   </script>

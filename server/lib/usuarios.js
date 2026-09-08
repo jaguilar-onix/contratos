@@ -12,7 +12,10 @@ const ARCHIVO = path.resolve('data/usuarios.json');
 const COSTO = 16384;
 const LARGO = 64;
 
-export const NOMBRE_VALIDO = /^[a-zA-Z0-9._-]{3,32}$/;
+// Letras de cualquier idioma: esta es una aplicacion en espanol y "muñoz" o
+// "josé" son nombres normales. Se excluyen espacios y signos que compliquen
+// escribirlo o lo vuelvan ambiguo.
+export const NOMBRE_VALIDO = /^[\p{L}\p{N}._-]{3,32}$/u;
 export const CLAVE_MINIMA = 8;
 
 async function cifrar(clave) {
@@ -77,7 +80,7 @@ export async function verificar(nombre, clave) {
 export async function crear(nombre, clave) {
   if (!NOMBRE_VALIDO.test(nombre)) {
     throw new Error(
-      'El usuario debe tener entre 3 y 32 caracteres, sin espacios ni acentos.'
+      'El usuario debe tener entre 3 y 32 letras o números, sin espacios.'
     );
   }
   if (String(clave).length < CLAVE_MINIMA) {

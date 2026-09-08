@@ -147,7 +147,7 @@ app.post(
     // cabecera HTTP, al nombre del archivo y al pie de cada pagina.
     const folio =
       (req.body.folio || '')
-        .replace(/[^\w.\-/ ]+/g, ' ')
+        .replace(/[^\p{L}\p{N}.\-/ ]+/gu, ' ')
         .trim()
         .slice(0, 80) || folioNuevo();
     // En serie y no en paralelo: cada conversion levanta su propio LibreOffice,
@@ -168,10 +168,15 @@ app.post(
     });
 
     const nombre = `${folio.replaceAll('/', '_')}.pdf`;
+    // Una cabecera HTTP solo admite ASCII: el nombre con acentos viaja en
+    // filename*, y filename queda como respaldo para navegadores viejos.
+    const ascii = nombre.normalize('NFD').replace(/[^\x20-\x7E]/g, '_');
     res.set({
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${nombre}"`,
-      'X-Folio': folio,
+      'Content-Disposition':
+        `attachment; filename="${ascii}"; ` +
+        `filename*=UTF-8''${encodeURIComponent(nombre)}`,
+      'X-Folio': encodeURIComponent(folio),
     });
     res.send(pdf);
   })
@@ -197,11 +202,15 @@ app.use((err, _req, res, _next) => {
 
 await sesion.iniciar();
 
-const sembrado = await usuarios.sembrar(
-  process.env.ACCESO_USUARIO,
-  process.env.ACCESO_CLAVE
-);
-if (sembrado) console.log(`Usuario inicial creado: ${sembrado}`);
+// Un ACCESO_USUARIO o ACCESO_CLAVE que no cumplan las reglas no deben impedir
+// que la aplicacion arranque: sin servidor no hay forma de ver el porque.
+let sembrado = null;
+try {
+  sembrado = await usuarios.sembrar(process.env.ACCESO_USUARIO, process.env.ACCESO_CLAVE);
+  if (sembrado) console.log(`Usuario inicial creado: ${sembrado}`);
+} catch (error) {
+  console.error(`No se pudo crear el usuario inicial: ${error.message}`);
+}
 
 app.listen(PUERTO, () => {
   console.log(`Generador de contratos escuchando en http://localhost:${PUERTO}`);

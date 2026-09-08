@@ -1,10 +1,15 @@
 :root {
-  --fondo: #f6f6f4;
+  --marino: #1d3444;
+  --marino-claro: #2b4a5e;
+  --marfil: #f4f0eb;
+  --terracota: #c0563a;
+
+  --fondo: #f4f0eb;
   --tarjeta: #fff;
-  --borde: #e2e2dd;
-  --texto: #1c1c1a;
-  --suave: #6b6b66;
-  --acento: #1f6f4f;
+  --borde: #ddd7cf;
+  --texto: #1d3444;
+  --suave: #6d7a83;
+  --acento: var(--marino);
   --error: #a8321f;
 }
 
@@ -61,7 +66,11 @@ main {
 .fila { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
 .fila > select, .fila > .campo { flex: 1; min-width: 200px; }
 
-.campos { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.campos {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+}
 .campo { display: flex; flex-direction: column; gap: 4px; }
 .campo span { font-size: 12px; color: var(--suave); text-transform: capitalize; }
 
@@ -171,27 +180,6 @@ code { background: #ececE6; padding: 1px 5px; border-radius: 4px; font-size: 12p
 .sesion #quien { font-size: 13px; color: var(--suave); }
 .sesion button { padding: 6px 12px; font-size: 13px; }
 
-body.centrado {
-  display: grid;
-  place-items: center;
-  min-height: 100vh;
-  padding: 20px;
-}
-.tarjeta-entrada {
-  background: var(--tarjeta);
-  border: 1px solid var(--borde);
-  border-radius: 10px;
-  padding: 28px;
-  width: 100%;
-  max-width: 340px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.tarjeta-entrada h1 { margin: 0; font-size: 18px; }
-.tarjeta-entrada .ayuda { margin: -8px 0 4px; }
-.tarjeta-entrada button { margin-top: 4px; }
-
 dialog {
   border: 1px solid var(--borde);
   border-radius: 10px;
@@ -223,3 +211,259 @@ dialog .principal { margin-top: 16px; }
   font-size: 13px;
 }
 .usuarios button { padding: 3px 9px; font-size: 12px; }
+
+
+/* ==========================================================================
+   Pantalla de entrada
+   ========================================================================== */
+
+.entrada {
+  min-height: 100vh;
+  min-height: 100dvh; /* en el movil la barra del navegador cambia de alto */
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  background: var(--marfil);
+}
+
+/* --- Panel de marca --- */
+
+.marca-panel {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(32px, 5vw, 64px);
+  padding-left: max(clamp(32px, 5vw, 64px), env(safe-area-inset-left));
+  background: var(--marino);
+  color: var(--marfil);
+}
+
+/* Lineas finas que recuerdan al isotipo, y un halo que da profundidad. */
+.marca-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(244, 240, 235, 0.05) 0 1px,
+      transparent 1px 9px
+    ),
+    radial-gradient(120% 90% at 15% 0%, rgba(110, 157, 181, 0.28), transparent 60%);
+  pointer-events: none;
+}
+
+.marca-contenido { position: relative; margin-top: auto; }
+
+.marca {
+  position: relative;
+  display: block;
+  width: min(270px, 58%);
+  height: auto;
+  color: var(--marfil);
+}
+
+.lema {
+  margin: 0;
+  font-size: clamp(19px, 2.4vw, 26px);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.35;
+}
+
+.descripcion {
+  margin: 14px 0 0;
+  max-width: 34ch;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(244, 240, 235, 0.72);
+}
+
+.pie-marca {
+  position: relative;
+  margin: 0;
+  padding-top: 32px;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(244, 240, 235, 0.5);
+}
+
+/* --- Formulario --- */
+
+.acceso {
+  display: grid;
+  place-items: center;
+  padding: clamp(28px, 5vw, 56px);
+  padding-right: max(clamp(28px, 5vw, 56px), env(safe-area-inset-right));
+  padding-bottom: max(clamp(28px, 5vw, 56px), env(safe-area-inset-bottom));
+}
+
+.acceso form {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.acceso h1 {
+  margin: 0;
+  font-size: 27px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.acceso .ayuda { margin: -10px 0 6px; }
+
+.acceso .campo span:first-child {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--suave);
+}
+
+.acceso input {
+  padding: 13px 14px;
+  border-radius: 8px;
+  /* 16px evita que el navegador del movil acerque la pagina al enfocar. */
+  font-size: 16px;
+}
+.acceso input:focus {
+  outline: 2px solid var(--terracota);
+  outline-offset: -1px;
+}
+
+/* Campo con el boton de ver la contrasena dentro. */
+.con-boton { position: relative; display: block; }
+.con-boton input { width: 100%; padding-right: 74px; }
+.con-boton button {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  padding: 7px 10px;
+  min-height: 34px;
+  border: 0;
+  background: none;
+  color: var(--suave);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 6px;
+}
+.con-boton button:hover { background: #eee9e2; color: var(--marino); }
+
+.acceso .principal {
+  margin-top: 4px;
+  padding: 14px;
+  min-height: 48px; /* comodo de tocar con el dedo */
+  background: var(--marino);
+  border-color: var(--marino);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  transition: background-color 0.15s ease;
+}
+.acceso .principal:hover:not(:disabled) { background: var(--marino-claro); }
+.acceso .principal:disabled { opacity: 0.6; }
+
+.acceso .estado { margin: 2px 0 0; text-align: center; }
+.acceso .estado.error { color: var(--terracota); }
+
+/* --- En móvil se apila: banda de marca arriba, formulario abajo --- */
+
+@media (max-width: 860px) {
+  .entrada { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+
+  .marca-panel {
+    padding: max(28px, env(safe-area-inset-top)) 24px 26px;
+    align-items: center;
+    text-align: center;
+  }
+  .marca-contenido { margin-top: 0; }
+  .marca { width: min(240px, 72%); margin: 0 auto; }
+  .lema { margin-top: 18px; font-size: 15px; letter-spacing: 0.14em; }
+  /* En una pantalla chica, el formulario importa mas que el texto. */
+  .descripcion,
+  .pie-marca { display: none; }
+
+  /* Centrado en el espacio que queda; si el teclado lo reduce, la pagina
+     se desplaza en vez de recortar el formulario. */
+  .acceso { align-items: center; padding-block: 36px; }
+}
+
+@media (max-width: 380px) {
+  .marca { width: 200px; }
+  .lema { font-size: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acceso .principal { transition: none; }
+}
+
+/* --- Identidad en la barra de la aplicación --- */
+
+.identidad { display: flex; align-items: center; gap: 16px; }
+
+.marca-barra {
+  width: 132px;
+  height: auto;
+  flex: none;
+  color: var(--marino);
+}
+
+@media (max-width: 620px) {
+  .identidad { gap: 12px; }
+  .marca-barra { width: 104px; }
+  /* En pantallas chicas el titulo y el logo dirian lo mismo dos veces. */
+  .identidad h1 { display: none; }
+  .barra p { font-size: 13px; }
+}
+
+/* --- Ajustes para pantallas chicas --- */
+
+/* Los nombres de machote son largos y sin espacios: sin esto empujan la
+   página a lo ancho y aparece un desplazamiento horizontal. */
+#documentos,
+.anexos .nombre,
+.usuarios li span {
+  overflow-wrap: anywhere;
+}
+
+/* Un select con un nombre largo dentro no debe estirar su columna. */
+select { max-width: 100%; }
+.fila > select,
+.fila > .campo { min-width: min(200px, 100%); }
+
+@media (max-width: 620px) {
+  /* El subtítulo repite lo que ya dice la pantalla; el espacio vale más. */
+  .barra > .identidad p { display: none; }
+  .barra { align-items: center; }
+  main { padding-inline: 14px; }
+  .paso { padding: 16px; }
+}
+
+@media (max-width: 620px) {
+  /* El rótulo, los campos y el botón no caben en una línea: se apilan. */
+  .fila-lista {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    background: #fff;
+  }
+  .fila-lista .orden {
+    padding-bottom: 0;
+    font-weight: 600;
+    color: var(--marino);
+  }
+  .fila-lista .quitar { align-self: flex-end; }
+  .lista { padding: 12px; }
+}
