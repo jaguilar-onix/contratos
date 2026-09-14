@@ -178,18 +178,36 @@ HTTP —dentro de la red de la oficina es lo habitual— o generar un certificad
 propio en *Panel de control → Seguridad → Certificado*, que cifra pero hace que
 el navegador avise que no lo reconoce.
 
-### Usarlo desde fuera
+### Usarlo desde fuera de la oficina
 
-Si más adelante quieres entrar sin estar en la oficina, hay dos formas:
+Con la configuración anterior nada del NAS sale a internet, así que desde otra
+red no hay por dónde llegar. Tres formas de abrirlo, de menos a más expuesto:
 
-- **Por VPN.** El paquete *VPN Server* de DSM; te conectas y entras al mismo
-  nombre local. Nada queda expuesto.
-- **Publicándolo a internet.** Registro A hacia tu IP pública, puertos 80 y 443
-  del router hacia el NAS, y el certificado de Let's Encrypt desde
-  *Seguridad → Certificado*.
+**1. Por VPN (lo más seguro).** Instala el paquete *VPN Server* en DSM y conecta
+cada equipo a esa VPN; una vez dentro, el subdominio funciona igual que en la
+oficina. No se abre ningún puerto: quien no tenga la VPN no ve nada. A cambio,
+hay que conectarla cada vez.
 
-> Antes de publicarlo a internet, revisa que las contraseñas sean largas y
-> elimina los usuarios que ya no ocupes.
+**2. Por un túnel (sin abrir puertos).** Servicios como Tailscale o Cloudflare
+Tunnel publican la aplicación sin tocar el router y sin IP fija. Es la opción
+práctica si el proveedor de internet usa CGNAT, que impide redirigir puertos.
+
+**3. Publicándolo a internet.** Registro A hacia la IP pública, los puertos 80 y
+443 del router redirigidos al NAS, y el certificado de Let's Encrypt desde
+*Seguridad → Certificado*. Publicarlo por el puerto 80 es además lo que permite
+a DSM emitir ese certificado, cosa que en una instalación solo-local no puede.
+
+> Requiere IP pública fija o un DDNS. Si tu proveedor usa CGNAT, esta vía no
+> funciona y hay que ir por la 1 o la 2.
+
+#### Antes de exponerlo
+
+- **Define `PROXIES_DE_CONFIANZA=1`** en las variables del proyecto. Le dice a la
+  aplicación que hay un proxy delante, para que reconozca la dirección real de
+  quien entra y marque la cookie de sesión como segura al servir por HTTPS.
+- **Revisa las contraseñas**: son lo único que separa los contratos de internet.
+  Elimina los usuarios que ya no ocupes.
+- **HTTPS, no HTTP.** Sin él, usuario y contraseña viajan a la vista.
 
 ### Rendimiento y respaldo
 

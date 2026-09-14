@@ -1,8 +1,10 @@
 import * as sesion from './sesion.js';
 import * as usuarios from './usuarios.js';
 
-// Freno a la adivinacion de contrasenas: unos pocos intentos fallidos por
-// direccion y luego una espera. Vive en memoria; reiniciar lo limpia, que es
+// Freno a la adivinacion de contrasenas. Se cuenta por direccion y tambien
+// por usuario: la direccion puede venir falseada si hay un proxy mal
+// configurado delante, mientras que el nombre de usuario es el que de verdad
+// se esta intentando reventar. Vive en memoria; reiniciar lo limpia, que es
 // suficiente para lo que protege.
 const INTENTOS_MAXIMOS = 8;
 const ESPERA_MS = 10 * 60_000;
@@ -49,9 +51,9 @@ export function exigirSesion({ publicas = [] } = {}) {
 
 export async function entrar(req, res) {
   const { usuario, clave } = req.body || {};
-  const llave = req.ip || 'desconocido';
+  const llaves = [`ip:${req.ip || 'desconocida'}`, `usuario:${String(usuario || '')}`];
 
-  const minutos = bloqueado(llave);
+  const minutos = Math.max(...llaves.map(bloqueado));
   if (minutos) {
     return res.status(429).json({
       error: `Demasiados intentos fallidos. Vuelve a intentar en ${minutos} minuto(s).`,
@@ -59,11 +61,11 @@ export async function entrar(req, res) {
   }
 
   if (!usuario || !clave || !(await usuarios.verificar(String(usuario), clave))) {
-    anotarFallo(llave);
+    llaves.forEach(anotarFallo);
     return res.status(401).json({ error: 'Usuario o contraseña incorrectos.' });
   }
 
-  intentos.delete(llave);
+  llaves.forEach((llave) => intentos.delete(llave));
   sesion.guardarCookie(req, res, String(usuario));
   res.json({ usuario: String(usuario) });
 }

@@ -140,6 +140,12 @@ npm start
 | `ACCESO_USUARIO`  | —           | Usuario que se crea la primera vez que arranca.      |
 | `ACCESO_CLAVE`    | —           | Su contraseña. Mínimo 8 caracteres.                  |
 | `SESION_HORAS`    | `12`        | Cuánto dura la sesión antes de pedir entrar de nuevo. |
+| `PROXIES_DE_CONFIANZA` | —      | Número de proxies delante. Necesario al publicarla detrás de uno. |
+
+Si la aplicación va detrás de un proxy (el de DSM, Caddy), define
+`PROXIES_DE_CONFIANZA=1`: sin eso no reconoce la dirección real de quien entra
+—y el freno a los intentos fallidos contaría a todos como uno— ni marca la
+cookie de sesión como segura al servir por HTTPS.
 
 ## Quién puede entrar
 
@@ -153,7 +159,10 @@ sin él nadie podría entrar. Solo actúan cuando no existe ninguno, así que la
 contraseña puede cambiarse después desde la aplicación sin que la variable la
 revierta. Si arranca sin usuarios y sin esas variables, lo advierte en la consola.
 
-Ocho intentos fallidos desde la misma dirección obligan a esperar diez minutos.
+Ocho intentos fallidos obligan a esperar diez minutos. Se cuentan por dirección
+y también por usuario: la dirección puede venir falseada si hay un proxy mal
+configurado delante, mientras que el nombre de usuario es el que de verdad se
+está intentando reventar.
 
 Los machotes se guardan en `data/plantillas/`. Ese directorio debe persistir
 entre reinicios (en Docker ya está montado como volumen).

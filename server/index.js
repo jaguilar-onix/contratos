@@ -30,11 +30,35 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // Detras del proxy de DSM o de Caddy, esto es lo que permite saber si la
-// visita llego por HTTPS y si la IP del intento es la real.
-app.set('trust proxy', true);
+// visita llego por HTTPS y cual es la IP real de quien intenta entrar.
+//
+// Por omision no se cree a nadie: quien llegue de internet podria declarar
+// una IP distinta en cada intento y esquivar el limite de intentos fallidos.
+// Al publicarla detras del proxy de DSM o de Caddy, PROXIES_DE_CONFIANZA=1
+// dice cuantos hay delante; sin eso la cookie tampoco se marca segura.
+app.set('trust proxy', Number(process.env.PROXIES_DE_CONFIANZA) || false);
+
+app.use((req, res, next) => {
+  res.set({
+    // El navegador no debe adivinar el tipo de un archivo servido.
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy': 'same-origin',
+    // Ni marcos ajenos ni plugins ni URLs base sustituidas.
+    'Content-Security-Policy':
+      "default-src 'self'; img-src 'self' data:; style-src 'self'; " +
+      "script-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
+  });
+  // Solo tiene sentido pedir HTTPS si ya se esta sirviendo por HTTPS.
+  if (req.secure) {
+    res.set('Strict-Transport-Security', 'max-age=15552000');
+  }
+  next();
+});
 
 // La pantalla de entrada y lo que necesita para pintarse.
-const PUBLICAS = ['/salud', '/entrar', '/entrar.html', '/api/entrar', '/styles.css'];
+const PUBLICAS = [
+  '/salud', '/entrar', '/entrar.html', '/entrar.js', '/api/entrar', '/styles.css',
+];
 
 app.get('/entrar', (req, res) => {
   if (sesion.usuarioDe(req)) return res.redirect('/');
