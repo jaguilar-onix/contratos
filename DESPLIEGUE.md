@@ -183,22 +183,33 @@ el navegador avise que no lo reconoce.
 Con la configuración anterior nada del NAS sale a internet, así que desde otra
 red no hay por dónde llegar. Tres formas de abrirlo, de menos a más expuesto:
 
-**1. Por VPN (lo más seguro).** Instala el paquete *VPN Server* en DSM y conecta
-cada equipo a esa VPN; una vez dentro, el subdominio funciona igual que en la
-oficina. No se abre ningún puerto: quien no tenga la VPN no ve nada. A cambio,
-hay que conectarla cada vez.
+**1. Por VPN.** Instala el paquete *VPN Server* en DSM y conecta cada equipo a
+esa VPN; una vez dentro, el subdominio funciona igual que en la oficina. Lo que
+queda expuesto es el servicio de VPN, no la aplicación, y el tráfico viaja
+cifrado por el túnel, así que el asunto del certificado desaparece.
 
-**2. Por un túnel (sin abrir puertos).** Servicios como Tailscale o Cloudflare
-Tunnel publican la aplicación sin tocar el router y sin IP fija. Es la opción
-práctica si el proveedor de internet usa CGNAT, que impide redirigir puertos.
+Requiere abrir en el router el puerto de la VPN —`1194/UDP` con OpenVPN, o
+`500`, `1701` y `4500/UDP` con L2TP/IPSec— y, por tanto, una IP pública
+alcanzable. **Usa OpenVPN**: DSM también ofrece PPTP, roto desde hace años.
+
+A cambio, hay que conectar la VPN cada vez, en cada equipo.
+
+**2. Por un túnel (la única que no necesita router).** Servicios como Tailscale
+o Cloudflare Tunnel publican la aplicación sin abrir nada y sin IP fija. Es la
+única de las tres que funciona si el proveedor de internet usa CGNAT, porque
+entonces redirigir puertos es imposible y las otras dos quedan descartadas.
 
 **3. Publicándolo a internet.** Registro A hacia la IP pública, los puertos 80 y
 443 del router redirigidos al NAS, y el certificado de Let's Encrypt desde
 *Seguridad → Certificado*. Publicarlo por el puerto 80 es además lo que permite
 a DSM emitir ese certificado, cosa que en una instalación solo-local no puede.
 
-> Requiere IP pública fija o un DDNS. Si tu proveedor usa CGNAT, esta vía no
-> funciona y hay que ir por la 1 o la 2.
+> Requiere IP pública fija o un DDNS. Si tu proveedor usa CGNAT, ni esta vía ni
+> la VPN funcionan: queda el túnel.
+>
+> Para saber cuál es tu caso, compara la IP que muestra *Panel de control → Red*
+> con la que reporta un buscador al preguntar por tu IP. Si no coinciden —o la
+> del NAS empieza entre `100.64.` y `100.127.`— estás detrás de CGNAT.
 
 > **El paquete «Proxy Server» de DSM no sirve para esto.** Es un proxy de
 > *reenvío* (Squid): hace que los equipos de la oficina salgan a internet a
