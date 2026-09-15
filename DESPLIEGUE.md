@@ -200,6 +200,13 @@ a DSM emitir ese certificado, cosa que en una instalación solo-local no puede.
 > Requiere IP pública fija o un DDNS. Si tu proveedor usa CGNAT, esta vía no
 > funciona y hay que ir por la 1 o la 2.
 
+> **El paquete «Proxy Server» de DSM no sirve para esto.** Es un proxy de
+> *reenvío* (Squid): hace que los equipos de la oficina salgan a internet a
+> través del NAS, con caché y bloqueo de sitios. Lo que publica un servicio
+> hacia fuera es un proxy *inverso*, que DSM ya trae integrado y que es el que
+> se configuró más arriba. Aun así, ningún proxy abre el camino desde internet
+> hasta el NAS: eso lo resuelven la VPN, el túnel o los puertos del router.
+
 #### Antes de exponerlo
 
 - **Define `PROXIES_DE_CONFIANZA=1`** en las variables del proyecto. Le dice a la
