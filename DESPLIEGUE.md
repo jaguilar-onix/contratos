@@ -108,6 +108,11 @@ services:
       # Sin estas dos no se crea ningun usuario y nadie podra entrar.
       ACCESO_USUARIO: onix
       ACCESO_CLAVE: una-contraseña-larga
+      # Hay un proxy delante (el portal de Web Station). Sin esto, todas las
+      # visitas llegan como la misma direccion y el freno a los intentos
+      # fallidos las cuenta juntas: quien se equivoque ocho veces deja fuera
+      # al resto de la oficina durante diez minutos.
+      PROXIES_DE_CONFIANZA: 1
     restart: unless-stopped
 ```
 
@@ -255,10 +260,9 @@ necesita que el nombre ya resuelva y que el puerto 80 ya llegue al NAS.
 
 7. **Fuerza HTTPS** en el portal, para que nadie entre por HTTP sin querer.
 
-8. **Avisa a la aplicación de que hay un proxy delante.** En Container
-   Manager, agrega `PROXIES_DE_CONFIANZA: 1` al proyecto y reconstrúyelo. Sin
-   esto no reconoce quién entra —el freno a los intentos fallidos contaría a
-   todos como uno— ni marca la cookie de sesión como segura.
+8. **Comprueba que la aplicación lleva `PROXIES_DE_CONFIANZA: 1`.** Ya hacía
+   falta con el portal de Web Station; al publicarla es además lo que marca la
+   cookie de sesión como segura al servir por HTTPS.
 
 9. **Enciende las defensas de DSM.** En *Panel de control → Seguridad*,
    activa el cortafuegos y el bloqueo automático de direcciones. Protegen al

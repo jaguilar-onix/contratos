@@ -22,4 +22,8 @@ services:
       # entrar; los demas se dan de alta desde la aplicacion.
       ACCESO_USUARIO: ${ACCESO_USUARIO:-}
       ACCESO_CLAVE: ${ACCESO_CLAVE:-}
+      # Numero de proxies delante. Con el portal de Web Station es 1: sin esto
+      # todas las visitas llegan como la misma direccion y quien falle ocho
+      # veces la contrasena deja fuera al resto durante diez minutos.
+      PROXIES_DE_CONFIANZA: ${PROXIES_DE_CONFIANZA:-}
     restart: unless-stopped
