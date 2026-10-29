@@ -218,6 +218,58 @@ a DSM emitir ese certificado, cosa que en una instalación solo-local no puede.
 > se configuró más arriba. Aun así, ningún proxy abre el camino desde internet
 > hasta el NAS: eso lo resuelven la VPN, el túnel o los puertos del router.
 
+#### Publicarla paso a paso
+
+El orden importa: el certificado se pide al final, porque Let's Encrypt
+necesita que el nombre ya resuelva y que el puerto 80 ya llegue al NAS.
+
+1. **Fija la dirección del NAS.** Si la toma por DHCP y cambia, todo lo demás
+   deja de funcionar. En el módem, reserva su IP para la MAC del NAS (aparece
+   en *Panel de control → Red → Interfaz de red*).
+
+2. **Configura un DDNS.** Salvo que tengas IP fija contratada, la pública
+   cambia cada cierto tiempo. En *Panel de control → Acceso externo → DDNS*,
+   da de alta uno —el de Synology es gratuito— y anota el nombre que te queda,
+   del estilo `algo.synology.me`.
+
+3. **Apunta el subdominio al DDNS.** En el DNS de tu dominio, sustituye el
+   registro A que apuntaba a la IP local por un **CNAME** de
+   `contratos.tudominio.mx` hacia `algo.synology.me`. Así sigue apuntando bien
+   cuando la IP pública cambie, sin que nadie tenga que tocar nada.
+
+   > Aprovecha para quitar el registro A hacia la IP privada: mientras exista,
+   > cualquiera que consulte tu DNS ve cómo está armada tu red por dentro.
+
+4. **Redirige los puertos en el módem.** El 80 y el 443 hacia la IP del NAS.
+   Si el módem usa el 80 para su propia página de administración y no te deja
+   redirigirlo, cámbiale el puerto a esa página; si aun así no se puede, salta
+   al apartado de más abajo sobre el certificado.
+
+5. **Comprueba que ya llega.** Desde fuera de la oficina —los datos del
+   celular sirven— abre `http://contratos.tudominio.mx`. Debe aparecer la
+   pantalla de entrada. Todavía sin candado: falta el certificado.
+
+6. **Pide el certificado.** *Panel de control → Seguridad → Certificado →
+   Añadir → Obtener un certificado de Let's Encrypt*, con el nombre del
+   subdominio. Luego, en *Configurar*, asígnalo al portal de Web Station.
+
+7. **Fuerza HTTPS** en el portal, para que nadie entre por HTTP sin querer.
+
+8. **Avisa a la aplicación de que hay un proxy delante.** En Container
+   Manager, agrega `PROXIES_DE_CONFIANZA: 1` al proyecto y reconstrúyelo. Sin
+   esto no reconoce quién entra —el freno a los intentos fallidos contaría a
+   todos como uno— ni marca la cookie de sesión como segura.
+
+9. **Enciende las defensas de DSM.** En *Panel de control → Seguridad*,
+   activa el cortafuegos y el bloqueo automático de direcciones. Protegen al
+   NAS entero, no solo a esta aplicación.
+
+> **Si el puerto 80 no se puede abrir**, Let's Encrypt no puede validar por esa
+> vía y DSM no sabe pedirlo de otra. Las salidas son usar el certificado del
+> propio DDNS de Synology, o emitirlo con `acme.sh` por validación DNS. En ese
+> caso el acceso funciona igual por el 443; lo único que cuesta es el
+> certificado.
+
 #### Antes de exponerlo
 
 - **Define `PROXIES_DE_CONFIANZA=1`** en las variables del proyecto. Le dice a la
