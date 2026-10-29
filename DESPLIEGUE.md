@@ -147,8 +147,14 @@ control → Red → Interfaz de red*.
   del NAS —aunque sea la de «Your website is not set up yet»— el nombre ya
   resuelve bien y lo que falta es el paso 3.
 
-- **DNS local en el router.** Casi todos permiten agregar un nombre que apunte a
-  una IP de la red. Busca *DNS local*, *Host estático* o *DNS masquerading*.
+- **DNS local en el router.** Muchos permiten agregar un nombre que apunte a
+  una IP de la red: busca *DNS local*, *Host estático* o *DNS masquerading*.
+  Si el router no lo trae —algunos de proveedor no lo traen— instala el paquete
+  **DNS Server** en el NAS, crea una zona para el dominio con el registro
+  apuntando al NAS, y reparte el NAS como DNS desde el DHCP del router.
+
+  > Deja siempre un DNS secundario público, como `8.8.8.8`. Si el NAS es el
+  > único servidor DNS de la red y se apaga, nadie podrá navegar.
 
 **3. Dile al NAS a quién corresponde ese nombre.** Hay dos mecanismos y no dan
 igual; cuál usar depende de si tienes **Web Station** instalado:
